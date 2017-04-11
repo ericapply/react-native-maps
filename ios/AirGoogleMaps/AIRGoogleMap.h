@@ -32,6 +32,7 @@
 @property (nonatomic, strong) NSMutableArray *polylines;
 @property (nonatomic, strong) NSMutableArray *circles;
 @property (nonatomic, strong) NSMutableArray *tiles;
+//@property (nonatomic, strong) NSMutableDictionary *clusterMarkerDictionary;
 
 @property (nonatomic, strong) GMUClusterManager *clusterManager;
 

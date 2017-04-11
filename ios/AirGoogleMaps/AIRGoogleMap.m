@@ -17,6 +17,28 @@
 #import <React/RCTConvert+MapKit.h>
 #import <React/UIView+React.h>
 
+//// Point of Interest Item which implements the GMUClusterItem protocol.
+//@interface POIItem : NSObject<GMUClusterItem>
+//
+//@property(nonatomic, readonly) CLLocationCoordinate2D position;
+//@property(nonatomic, readonly) NSString *name;
+//
+//- (instancetype)initWithPosition:(CLLocationCoordinate2D)position name:(NSString *)name;
+//
+//@end
+//
+//@implementation POIItem
+//
+//- (instancetype)initWithPosition:(CLLocationCoordinate2D)position name:(NSString *)name {
+//  if ((self = [super init])) {
+//    _position = position;
+//    _name = [name copy];
+//  }
+//  return self;
+//}
+//
+//@end
+
 id regionAsJSON(MKCoordinateRegion region) {
   return @{
            @"latitude": [NSNumber numberWithDouble:region.center.latitude],
@@ -54,6 +76,7 @@ id regionAsJSON(MKCoordinateRegion region) {
     id<GMUClusterIconGenerator> iconGenerator = [[GMUDefaultClusterIconGenerator alloc] init];
     id<GMUClusterRenderer> renderer = [[GMUDefaultClusterRenderer alloc] initWithMapView:self clusterIconGenerator:iconGenerator];
     self.clusterManager = [[GMUClusterManager alloc] initWithMap:self algorithm:algorithm renderer:renderer];
+//    self.clusterMarkerDictionary = [NSMutableDictionary new];
   }
   
   return self;
@@ -81,14 +104,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   // This is where we intercept them and do the appropriate underlying mapview action.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = self;
+//    marker.realMarker.map = self;
 //    if(marker.cluster) {
-//      id<GMUClusterItem> item = [[POIItem alloc] initWithPosition:marker.coordinate name:marker.title];
-//      [self.clusterManager addItem:item];
-//    } else {
-//      [self.markers addObject:marker];
+      [self.clusterManager addItem:marker];
 //    }
-    [self.markers addObject:marker];
+    
+//    [self.markers addObject:marker];
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = self;
@@ -123,11 +144,9 @@ id regionAsJSON(MKCoordinateRegion region) {
   // underlying mapview action here.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    // Only remove from markers array if the marker is not a cluster
-    if(!CLLocationCoordinate2DIsValid(marker.position)) {
-      marker.realMarker.map = nil;
-      [self.markers removeObject:marker];
-    }
+    marker.realMarker.map = nil;
+    [self.clusterManager removeItem:marker];
+//    [self.markers removeObject:marker];
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = nil;
@@ -324,16 +343,16 @@ id regionAsJSON(MKCoordinateRegion region) {
   return [map cameraForBounds:bounds insets:UIEdgeInsetsZero];
 }
 
-- (BOOL)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
-//  if (!self.onPress) return;
-  id event = @{@"action": @"cluster-marker-press",
-               @"items": cluster.items ?: nil,
-               };
-  
-  if (self.onClusterMarkerPress) self.onClusterMarkerPress(event);
-
-  return NO;
-  
-}
+//- (BOOL)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
+////  if (!self.onPress) return;
+//  id event = @{@"action": @"cluster-marker-press",
+//               @"items": cluster.items ?: nil,
+//               };
+//  
+//  if (self.onClusterMarkerPress) self.onClusterMarkerPress(event);
+//
+//  return NO;
+//  
+//}
 
 @end

@@ -33,13 +33,13 @@ CGRect unionRect(CGRect a, CGRect b) {
 }
 
 // Interface for GMUClusterItem
-- (instancetype)initWithPosition:(CLLocationCoordinate2D)position name:(NSString *)name {
-  if ((self = [super init])) {
-    _position = position;
-    _name = [name copy];
-  }
-  return self;
-}
+//- (instancetype)initWithPosition:(CLLocationCoordinate2D)position name:(NSString *)name {
+//  if ((self = [super init])) {
+//    _position = position;
+//    _name = [name copy];
+//  }
+//  return self;
+//}
 
 - (instancetype)init
 {
@@ -173,6 +173,7 @@ CGRect unionRect(CGRect a, CGRect b) {
 
 - (void)setCoordinate:(CLLocationCoordinate2D)coordinate {
   _realMarker.position = coordinate;
+  _position = coordinate;
 }
 
 - (CLLocationCoordinate2D)coordinate {
@@ -181,6 +182,7 @@ CGRect unionRect(CGRect a, CGRect b) {
 
 - (void)setIdentifier:(NSString *)identifier {
   _realMarker.identifier = identifier;
+  _name = identifier;
 }
 
 - (NSString *)identifier {
@@ -247,12 +249,16 @@ CGRect unionRect(CGRect a, CGRect b) {
   return _realMarker.draggable;
 }
 
-- (void)setCluster:(BOOL)cluster {
-  self.cluster = cluster;
-}
-
-- (BOOL)cluster {
-  return self.cluster;
-}
+//- (void)setCluster:(BOOL)cluster {
+//  self.cluster = cluster;
+//}
+//
+//- (BOOL)cluster {
+//  return self.cluster;
+//}
+//
+//- (void)dealloc {
+//  NSLog(@"dealloc");
+//}
 
 @end
