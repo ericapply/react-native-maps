@@ -32,12 +32,20 @@ CGRect unionRect(CGRect a, CGRect b) {
   UIView *_iconView;
 }
 
+// Interface for GMUClusterItem
+- (instancetype)initWithPosition:(CLLocationCoordinate2D)position name:(NSString *)name {
+  if ((self = [super init])) {
+    _position = position;
+    _name = [name copy];
+  }
+  return self;
+}
+
 - (instancetype)init
 {
   if ((self = [super init])) {
     _realMarker = [[AIRGMSMarker alloc] init];
     _realMarker.fakeMarker = self;
-    _realMarker.appearAnimation = kGMSMarkerAnimationPop;
   }
   return self;
 }
@@ -237,6 +245,14 @@ CGRect unionRect(CGRect a, CGRect b) {
 
 - (BOOL)draggable {
   return _realMarker.draggable;
+}
+
+- (void)setCluster:(BOOL)cluster {
+  self.cluster = cluster;
+}
+
+- (BOOL)cluster {
+  return self.cluster;
 }
 
 @end

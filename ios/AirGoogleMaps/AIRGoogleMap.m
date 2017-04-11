@@ -11,6 +11,7 @@
 #import "AIRGoogleMapPolyline.h"
 #import "AIRGoogleMapCircle.h"
 #import "AIRGoogleMapUrlTile.h"
+#import <Google-Maps-iOS-Utils/GMUMarkerClustering.h>
 #import <GoogleMaps/GoogleMaps.h>
 #import <MapKit/MapKit.h>
 #import <React/RCTConvert+MapKit.h>
@@ -47,7 +48,14 @@ id regionAsJSON(MKCoordinateRegion region) {
     _circles = [NSMutableArray array];
     _tiles = [NSMutableArray array];
     _initialRegionSet = false;
+    
+    // Init native google maps clustering
+    id<GMUClusterAlgorithm> algorithm = [[GMUNonHierarchicalDistanceBasedAlgorithm alloc] init];
+    id<GMUClusterIconGenerator> iconGenerator = [[GMUDefaultClusterIconGenerator alloc] init];
+    id<GMUClusterRenderer> renderer = [[GMUDefaultClusterRenderer alloc] initWithMapView:self clusterIconGenerator:iconGenerator];
+    self.clusterManager = [[GMUClusterManager alloc] initWithMap:self algorithm:algorithm renderer:renderer];
   }
+  
   return self;
 }
 - (id)eventFromCoordinate:(CLLocationCoordinate2D)coordinate {
@@ -74,6 +82,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
     marker.realMarker.map = self;
+//    if(marker.cluster) {
+//      id<GMUClusterItem> item = [[POIItem alloc] initWithPosition:marker.coordinate name:marker.title];
+//      [self.clusterManager addItem:item];
+//    } else {
+//      [self.markers addObject:marker];
+//    }
     [self.markers addObject:marker];
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
@@ -109,8 +123,11 @@ id regionAsJSON(MKCoordinateRegion region) {
   // underlying mapview action here.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = nil;
-    [self.markers removeObject:marker];
+    // Only remove from markers array if the marker is not a cluster
+    if(!CLLocationCoordinate2DIsValid(marker.position)) {
+      marker.realMarker.map = nil;
+      [self.markers removeObject:marker];
+    }
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = nil;
@@ -305,6 +322,18 @@ id regionAsJSON(MKCoordinateRegion region) {
                                                         region.center.longitude - longitudeDelta);
   GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] initWithCoordinate:a coordinate:b];
   return [map cameraForBounds:bounds insets:UIEdgeInsetsZero];
+}
+
+- (BOOL)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
+//  if (!self.onPress) return;
+  id event = @{@"action": @"cluster-marker-press",
+               @"items": cluster.items ?: nil,
+               };
+  
+  if (self.onClusterMarkerPress) self.onClusterMarkerPress(event);
+
+  return NO;
+  
 }
 
 @end
