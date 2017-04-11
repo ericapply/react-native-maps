@@ -255,8 +255,8 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 
 #pragma mark GMUClusterManagerDelegate
 
-- (void)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
-  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
+//- (void)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
+//  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
   // TODO: Zoom into cluster on tap
 //  [googleMapView didTapCluster: clusterManager:clusterManager cluster:cluster];
   
@@ -265,7 +265,7 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 //  [GMSCameraPosition cameraWithTarget:cluster.position zoom:_mapView.camera.zoom + 1];
 //  GMSCameraUpdate *update = [GMSCameraUpdate setCamera:newCamera];
 //  [self.map moveCamera:update];
-}
+//}
 
 
 @end

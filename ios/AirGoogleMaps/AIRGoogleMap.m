@@ -308,17 +308,14 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 
 - (void)renderer:(id<GMUClusterRenderer>)renderer willRenderMarker:(GMSMarker *)marker {
-  
+  // Center the marker at the bottom of the image.
+  marker.groundAnchor = CGPointMake(0.5, 1.0);
   if ([marker.userData isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *annotation = (AIRGoogleMapMarker *)marker.userData;
-//    marker.title = person.imageUrl;
     marker.icon = annotation.realMarker.icon;
-    //    // Center the marker at the center of the image.
-//    marker.groundAnchor = CGPointMake(0.5, 0.5);
   } else if ([marker.userData conformsToProtocol:@protocol(GMUCluster)]) {
     id<GMUCluster> cluster = marker.userData;
     marker.icon = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;
-//    marker.icon = [self imageForCluster:marker.userData];
   }
 }
 
