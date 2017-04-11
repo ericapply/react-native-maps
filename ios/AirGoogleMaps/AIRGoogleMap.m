@@ -17,27 +17,23 @@
 #import <React/RCTConvert+MapKit.h>
 #import <React/UIView+React.h>
 
-//// Point of Interest Item which implements the GMUClusterItem protocol.
-//@interface POIItem : NSObject<GMUClusterItem>
-//
-//@property(nonatomic, readonly) CLLocationCoordinate2D position;
-//@property(nonatomic, readonly) NSString *name;
-//
-//- (instancetype)initWithPosition:(CLLocationCoordinate2D)position name:(NSString *)name;
-//
-//@end
-//
-//@implementation POIItem
-//
-//- (instancetype)initWithPosition:(CLLocationCoordinate2D)position name:(NSString *)name {
-//  if ((self = [super init])) {
-//    _position = position;
-//    _name = [name copy];
-//  }
-//  return self;
-//}
-//
-//@end
+#import "GMUGridBasedClusterAlgorithm.h"
+#import "GMUNonHierarchicalDistanceBasedAlgorithm.h"
+#import "GMUClusterManager.h"
+#import "GMUDefaultClusterIconGenerator.h"
+#import "GMUDefaultClusterRenderer.h"
+
+@interface ClusterRenderer : GMUDefaultClusterRenderer
+@end
+
+@implementation ClusterRenderer
+
+// Show as a cluster for clusters whose size is >= 2.
+- (BOOL)shouldRenderAsCluster:(id<GMUCluster>)cluster atZoom:(float)zoom {
+  return cluster.count >= 2;
+}
+
+@end
 
 id regionAsJSON(MKCoordinateRegion region) {
   return @{
@@ -48,7 +44,7 @@ id regionAsJSON(MKCoordinateRegion region) {
            };
 }
 
-@interface AIRGoogleMap ()
+@interface AIRGoogleMap ()<GMUClusterRendererDelegate>
 
 - (id)eventFromCoordinate:(CLLocationCoordinate2D)coordinate;
 
@@ -74,7 +70,10 @@ id regionAsJSON(MKCoordinateRegion region) {
     // Init native google maps clustering
     id<GMUClusterAlgorithm> algorithm = [[GMUNonHierarchicalDistanceBasedAlgorithm alloc] init];
     id<GMUClusterIconGenerator> iconGenerator = [[GMUDefaultClusterIconGenerator alloc] init];
-    id<GMUClusterRenderer> renderer = [[GMUDefaultClusterRenderer alloc] initWithMapView:self clusterIconGenerator:iconGenerator];
+    
+    ClusterRenderer *renderer = [[ClusterRenderer alloc] initWithMapView:self clusterIconGenerator:iconGenerator];
+    renderer.delegate = self;
+    
     self.clusterManager = [[GMUClusterManager alloc] initWithMap:self algorithm:algorithm renderer:renderer];
 //    self.clusterMarkerDictionary = [NSMutableDictionary new];
   }
@@ -306,6 +305,21 @@ id regionAsJSON(MKCoordinateRegion region) {
 
 - (BOOL)showsUserLocation {
   return self.myLocationEnabled;
+}
+
+- (void)renderer:(id<GMUClusterRenderer>)renderer willRenderMarker:(GMSMarker *)marker {
+  
+  if ([marker.userData isKindOfClass:[AIRGoogleMapMarker class]]) {
+    AIRGoogleMapMarker *annotation = (AIRGoogleMapMarker *)marker.userData;
+//    marker.title = person.imageUrl;
+    marker.icon = annotation.realMarker.icon;
+    //    // Center the marker at the center of the image.
+//    marker.groundAnchor = CGPointMake(0.5, 0.5);
+  } else if ([marker.userData conformsToProtocol:@protocol(GMUCluster)]) {
+    id<GMUCluster> cluster = marker.userData;
+    marker.icon = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;
+//    marker.icon = [self imageForCluster:marker.userData];
+  }
 }
 
 + (MKCoordinateRegion) makeGMSCameraPositionFromMap:(GMSMapView *)map andGMSCameraPosition:(GMSCameraPosition *)position {
