@@ -103,12 +103,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   // This is where we intercept them and do the appropriate underlying mapview action.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-//    marker.realMarker.map = self;
-//    if(marker.cluster) {
+    if(marker.cluster) {
       [self.clusterManager addItem:marker];
-//    }
-    
-//    [self.markers addObject:marker];
+    } else {
+      marker.realMarker.map = self;
+      [self.markers addObject:marker];
+    }
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = self;
@@ -143,9 +143,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   // underlying mapview action here.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = nil;
-    [self.clusterManager removeItem:marker];
-//    [self.markers removeObject:marker];
+    if(marker.cluster) {
+      [self.clusterManager removeItem:marker];
+    } else {
+      marker.realMarker.map = nil;
+      [self.markers removeObject:marker];
+    }
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = nil;

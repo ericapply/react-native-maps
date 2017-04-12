@@ -249,16 +249,4 @@ CGRect unionRect(CGRect a, CGRect b) {
   return _realMarker.draggable;
 }
 
-//- (void)setCluster:(BOOL)cluster {
-//  self.cluster = cluster;
-//}
-//
-//- (BOOL)cluster {
-//  return self.cluster;
-//}
-//
-//- (void)dealloc {
-//  NSLog(@"dealloc");
-//}
-
 @end

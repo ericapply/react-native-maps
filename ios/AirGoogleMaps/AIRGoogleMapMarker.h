@@ -33,7 +33,7 @@
 @property (nonatomic, assign) BOOL draggable;
 
 // Google Maps Clustering Properties
-//@property (nonatomic, readonly) BOOL cluster;
+@property (nonatomic, assign) BOOL cluster;
 @property (nonatomic, readonly) CLLocationCoordinate2D position;
 @property (nonatomic, readonly) NSString *name;
 
