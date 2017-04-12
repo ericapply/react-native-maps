@@ -63,6 +63,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onLongPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMarkerPress, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onClusterMarkerPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRegionChange, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRegionChangeComplete, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(mapType, GMSMapViewType)
@@ -259,6 +260,18 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 //  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
   // TODO: Zoom into cluster on tap
 //  [googleMapView didTapCluster: clusterManager:clusterManager cluster:cluster];
+
+- (void)clusterManager:(GMUClusterManager *)clusterManager didTapClusterItem:(id<GMUClusterItem>)clusterItem {
+  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
+
+  AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)clusterItem;
+
+  googleMapView.onClusterMarkerPress(@{
+      @"name": clusterMarker.name,
+      @"identifier": clusterMarker.identifier,
+  });
+
+}
   
   
 //  GMSCameraPosition *newCamera =
