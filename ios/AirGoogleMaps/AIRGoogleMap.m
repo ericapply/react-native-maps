@@ -75,7 +75,6 @@ id regionAsJSON(MKCoordinateRegion region) {
     renderer.delegate = self;
     
     self.clusterManager = [[GMUClusterManager alloc] initWithMap:self algorithm:algorithm renderer:renderer];
-//    self.clusterMarkerDictionary = [NSMutableDictionary new];
   }
   
   return self;
@@ -196,16 +195,21 @@ id regionAsJSON(MKCoordinateRegion region) {
 - (BOOL)didTapMarker:(GMSMarker *)marker {
   AIRGMSMarker *airMarker = (AIRGMSMarker *)marker;
 
-  id event = @{@"action": @"marker-press",
-               @"id": airMarker.identifier ?: @"unknown",
-              };
-
-  if (airMarker.onPress) airMarker.onPress(event);
-  if (self.onMarkerPress) self.onMarkerPress(event);
-
-  // TODO: not sure why this is necessary
-  [self setSelectedMarker:marker];
-  return NO;
+  AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)airMarker.userData;
+  if(clusterMarker != nil) {
+    return NO;
+  } else {
+    id event = @{@"action": @"marker-press",
+                 @"id": airMarker.identifier ?: @"unknown",
+                 };
+    
+    if (airMarker.onPress) airMarker.onPress(event);
+    if (self.onMarkerPress) self.onMarkerPress(event);
+    
+    // TODO: not sure why this is necessary
+    [self setSelectedMarker:marker];
+    return NO;
+  }
 }
 
 - (void)didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
