@@ -262,15 +262,14 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 //  [googleMapView didTapCluster: clusterManager:clusterManager cluster:cluster];
 
 - (void)clusterManager:(GMUClusterManager *)clusterManager didTapClusterItem:(id<GMUClusterItem>)clusterItem {
-  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
-
-  AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)clusterItem;
-
-  googleMapView.onClusterMarkerPress(@{
-      @"name": clusterMarker.name,
-      @"identifier": clusterMarker.identifier,
-  });
-
+//  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
+//
+//  AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)clusterItem;
+//
+//  googleMapView.onClusterMarkerPress(@{
+//      @"name": clusterMarker.name,
+//      @"identifier": clusterMarker.identifier,
+//  });
 }
   
   
