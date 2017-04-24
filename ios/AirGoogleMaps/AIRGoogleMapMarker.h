@@ -5,13 +5,14 @@
 //  Created by Gil Birman on 9/2/16.
 //
 
+#import <Google-Maps-iOS-Utils/GMUMarkerClustering.h>
 #import <GoogleMaps/GoogleMaps.h>
 #import <React/RCTBridge.h>
 #import "AIRGMSMarker.h"
 #import "AIRGoogleMap.h"
 #import "AIRGoogleMapCallout.h"
 
-@interface AIRGoogleMapMarker : UIView
+@interface AIRGoogleMapMarker : UIView<GMUClusterItem>
 
 @property (nonatomic, weak) RCTBridge *bridge;
 @property (nonatomic, strong) AIRGoogleMapCallout *calloutView;
@@ -30,6 +31,11 @@
 @property (nonatomic, assign) NSInteger zIndex;
 @property (nonatomic, assign) double opacity;
 @property (nonatomic, assign) BOOL draggable;
+
+// Google Maps Clustering Properties
+@property (nonatomic, assign) BOOL cluster;
+@property (nonatomic, readonly) CLLocationCoordinate2D position;
+@property (nonatomic, readonly) NSString *name;
 
 - (void)showCalloutView;
 - (void)hideCalloutView;

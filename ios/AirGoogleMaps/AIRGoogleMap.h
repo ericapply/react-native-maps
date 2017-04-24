@@ -8,6 +8,7 @@
 #import <UIKit/UIKit.h>
 #import <React/RCTComponent.h>
 #import <React/RCTConvert+MapKit.h>
+#import <Google-Maps-iOS-Utils/GMUMarkerClustering.h>
 #import <GoogleMaps/GoogleMaps.h>
 #import <MapKit/MapKit.h>
 #import "AIRGMSMarker.h"
@@ -24,11 +25,15 @@
 @property (nonatomic, copy) RCTBubblingEventBlock onChange;
 @property (nonatomic, copy) RCTDirectEventBlock onRegionChange;
 @property (nonatomic, copy) RCTDirectEventBlock onRegionChangeComplete;
+// TODO: Why are these an array and not dictionary
 @property (nonatomic, strong) NSMutableArray *markers;
 @property (nonatomic, strong) NSMutableArray *polygons;
 @property (nonatomic, strong) NSMutableArray *polylines;
 @property (nonatomic, strong) NSMutableArray *circles;
 @property (nonatomic, strong) NSMutableArray *tiles;
+//@property (nonatomic, strong) NSMutableDictionary *clusterMarkerDictionary;
+
+@property (nonatomic, strong) GMUClusterManager *clusterManager;
 
 @property (nonatomic, assign) BOOL showsBuildings;
 @property (nonatomic, assign) BOOL showsTraffic;

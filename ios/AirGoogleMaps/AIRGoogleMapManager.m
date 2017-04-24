@@ -7,6 +7,7 @@
 
 
 #import "AIRGoogleMapManager.h"
+#import <Google-Maps-iOS-Utils/GMUMarkerClustering.h>
 #import <React/RCTViewManager.h>
 #import <React/RCTBridge.h>
 #import <React/RCTUIManager.h>
@@ -30,7 +31,7 @@
 static NSString *const RCTMapViewKey = @"MapView";
 
 
-@interface AIRGoogleMapManager() <GMSMapViewDelegate>
+@interface AIRGoogleMapManager() <GMUClusterManagerDelegate, GMSMapViewDelegate>
 
 @end
 
@@ -41,7 +42,8 @@ RCT_EXPORT_MODULE()
 - (UIView *)view
 {
   AIRGoogleMap *map = [AIRGoogleMap new];
-  map.delegate = self;
+  [map.clusterManager setDelegate:self mapDelegate:self];
+  self.map = map;
   return map;
 }
 
@@ -61,6 +63,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onLongPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMarkerPress, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onClusterMarkerPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRegionChange, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRegionChangeComplete, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(mapType, GMSMapViewType)
@@ -196,7 +199,6 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
   }];
 }
 
-
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
   AIRGoogleMap *googleMapView = (AIRGoogleMap *)mapView;
   return [googleMapView didTapMarker:marker];
@@ -250,4 +252,32 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
   AIRGMSMarker *aMarker = (AIRGMSMarker *)marker;
   [aMarker.fakeMarker didDragMarker:aMarker];
 }
+
+
+#pragma mark GMUClusterManagerDelegate
+
+//- (void)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
+//  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
+  // TODO: Zoom into cluster on tap
+//  [googleMapView didTapCluster: clusterManager:clusterManager cluster:cluster];
+
+- (void)clusterManager:(GMUClusterManager *)clusterManager didTapClusterItem:(id<GMUClusterItem>)clusterItem {
+//  AIRGoogleMap *googleMapView = (AIRGoogleMap *)self.map;
+//
+//  AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)clusterItem;
+//
+//  googleMapView.onClusterMarkerPress(@{
+//      @"name": clusterMarker.name,
+//      @"identifier": clusterMarker.identifier,
+//  });
+}
+  
+  
+//  GMSCameraPosition *newCamera =
+//  [GMSCameraPosition cameraWithTarget:cluster.position zoom:_mapView.camera.zoom + 1];
+//  GMSCameraUpdate *update = [GMSCameraUpdate setCamera:newCamera];
+//  [self.map moveCamera:update];
+//}
+
+
 @end

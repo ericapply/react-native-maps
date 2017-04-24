@@ -11,10 +11,29 @@
 #import "AIRGoogleMapPolyline.h"
 #import "AIRGoogleMapCircle.h"
 #import "AIRGoogleMapUrlTile.h"
+#import <Google-Maps-iOS-Utils/GMUMarkerClustering.h>
 #import <GoogleMaps/GoogleMaps.h>
 #import <MapKit/MapKit.h>
 #import <React/RCTConvert+MapKit.h>
 #import <React/UIView+React.h>
+
+#import "GMUGridBasedClusterAlgorithm.h"
+#import "GMUNonHierarchicalDistanceBasedAlgorithm.h"
+#import "GMUClusterManager.h"
+#import "GMUDefaultClusterIconGenerator.h"
+#import "GMUDefaultClusterRenderer.h"
+
+@interface ClusterRenderer : GMUDefaultClusterRenderer
+@end
+
+@implementation ClusterRenderer
+
+// Show as a cluster for clusters whose size is >= 2.
+- (BOOL)shouldRenderAsCluster:(id<GMUCluster>)cluster atZoom:(float)zoom {
+  return cluster.count >= 2;
+}
+
+@end
 
 id regionAsJSON(MKCoordinateRegion region) {
   return @{
@@ -25,7 +44,7 @@ id regionAsJSON(MKCoordinateRegion region) {
            };
 }
 
-@interface AIRGoogleMap ()
+@interface AIRGoogleMap ()<GMUClusterRendererDelegate>
 
 - (id)eventFromCoordinate:(CLLocationCoordinate2D)coordinate;
 
@@ -47,7 +66,17 @@ id regionAsJSON(MKCoordinateRegion region) {
     _circles = [NSMutableArray array];
     _tiles = [NSMutableArray array];
     _initialRegionSet = false;
+    
+    // Init native google maps clustering
+    id<GMUClusterAlgorithm> algorithm = [[GMUNonHierarchicalDistanceBasedAlgorithm alloc] init];
+    id<GMUClusterIconGenerator> iconGenerator = [[GMUDefaultClusterIconGenerator alloc] init];
+    
+    ClusterRenderer *renderer = [[ClusterRenderer alloc] initWithMapView:self clusterIconGenerator:iconGenerator];
+    renderer.delegate = self;
+    
+    self.clusterManager = [[GMUClusterManager alloc] initWithMap:self algorithm:algorithm renderer:renderer];
   }
+  
   return self;
 }
 - (id)eventFromCoordinate:(CLLocationCoordinate2D)coordinate {
@@ -73,8 +102,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   // This is where we intercept them and do the appropriate underlying mapview action.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = self;
-    [self.markers addObject:marker];
+    if(marker.cluster) {
+      [self.clusterManager addItem:marker];
+    } else {
+      marker.realMarker.map = self;
+      [self.markers addObject:marker];
+    }
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = self;
@@ -109,8 +142,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   // underlying mapview action here.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = nil;
-    [self.markers removeObject:marker];
+    if(marker.cluster) {
+      [self.clusterManager removeItem:marker];
+    } else {
+      marker.realMarker.map = nil;
+      [self.markers removeObject:marker];
+    }
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = nil;
@@ -158,16 +195,21 @@ id regionAsJSON(MKCoordinateRegion region) {
 - (BOOL)didTapMarker:(GMSMarker *)marker {
   AIRGMSMarker *airMarker = (AIRGMSMarker *)marker;
 
-  id event = @{@"action": @"marker-press",
-               @"id": airMarker.identifier ?: @"unknown",
-              };
-
-  if (airMarker.onPress) airMarker.onPress(event);
-  if (self.onMarkerPress) self.onMarkerPress(event);
-
-  // TODO: not sure why this is necessary
-  [self setSelectedMarker:marker];
-  return NO;
+  AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)airMarker.userData;
+  if(clusterMarker != nil) {
+    return NO;
+  } else {
+    id event = @{@"action": @"marker-press",
+                 @"id": airMarker.identifier ?: @"unknown",
+                 };
+    
+    if (airMarker.onPress) airMarker.onPress(event);
+    if (self.onMarkerPress) self.onMarkerPress(event);
+    
+    // TODO: not sure why this is necessary
+    [self setSelectedMarker:marker];
+    return NO;
+  }
 }
 
 - (void)didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
@@ -272,6 +314,18 @@ id regionAsJSON(MKCoordinateRegion region) {
   return self.myLocationEnabled;
 }
 
+- (void)renderer:(id<GMUClusterRenderer>)renderer willRenderMarker:(GMSMarker *)marker {
+  // Center the marker at the bottom of the image.
+  marker.groundAnchor = CGPointMake(0.5, 1.0);
+  if ([marker.userData isKindOfClass:[AIRGoogleMapMarker class]]) {
+    AIRGoogleMapMarker *annotation = (AIRGoogleMapMarker *)marker.userData;
+    marker.icon = annotation.realMarker.icon;
+  } else if ([marker.userData conformsToProtocol:@protocol(GMUCluster)]) {
+    id<GMUCluster> cluster = marker.userData;
+    marker.icon = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;
+  }
+}
+
 + (MKCoordinateRegion) makeGMSCameraPositionFromMap:(GMSMapView *)map andGMSCameraPosition:(GMSCameraPosition *)position {
   // solution from here: http://stackoverflow.com/a/16587735/1102215
   GMSVisibleRegion visibleRegion = map.projection.visibleRegion;
@@ -306,5 +360,17 @@ id regionAsJSON(MKCoordinateRegion region) {
   GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] initWithCoordinate:a coordinate:b];
   return [map cameraForBounds:bounds insets:UIEdgeInsetsZero];
 }
+
+//- (BOOL)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
+////  if (!self.onPress) return;
+//  id event = @{@"action": @"cluster-marker-press",
+//               @"items": cluster.items ?: nil,
+//               };
+//  
+//  if (self.onClusterMarkerPress) self.onClusterMarkerPress(event);
+//
+//  return NO;
+//  
+//}
 
 @end
