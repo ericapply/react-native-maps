@@ -22,6 +22,7 @@
 #import "GMUClusterManager.h"
 #import "GMUDefaultClusterIconGenerator.h"
 #import "GMUDefaultClusterRenderer.h"
+#import "GMUStaticCluster.h"
 
 @interface ClusterRenderer : GMUDefaultClusterRenderer
 @end
@@ -197,12 +198,47 @@ id regionAsJSON(MKCoordinateRegion region) {
 
   AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)airMarker.userData;
   if(clusterMarker != nil) {
+    id markerPressEvent;
+    
+    if([clusterMarker respondsToSelector:@selector(identifier)]) {
+      markerPressEvent = @{
+                           @"action": @"marker-press",
+                           @"cluster": @(YES),
+                           @"count": @(1),
+                           @"id": clusterMarker.identifier,
+                           @"coordinate": @{
+                             @"latitude": @(clusterMarker.position.latitude),
+                             @"longitude": @(clusterMarker.position.longitude)
+                           }
+                         };
+    } else {
+      GMUStaticCluster *clusteredMarker = (GMUStaticCluster *)clusterMarker;
+      // Marker is a clustered marker
+      markerPressEvent = @{
+                           @"action": @"marker-press",
+                           @"cluster": @(YES),
+                           @"count": @(clusteredMarker.items.count),
+                           @"coordinate": @{
+                             @"latitude": @(clusteredMarker.position.latitude),
+                             @"longitude": @(clusteredMarker.position.longitude)
+                           }
+                         };
+    }
+
+    self.onPress(markerPressEvent);
     return NO;
   } else {
-    id event = @{@"action": @"marker-press",
-                 @"id": airMarker.identifier ?: @"unknown",
-                 };
     
+    id event = @{@"action": @"marker-press",
+                 @"cluster": @(NO),
+                 @"count": @(1),
+                 @"id": airMarker.identifier,
+                 @"coordinate": @{
+                     @"latitude": @(airMarker.position.latitude),
+                     @"longitude": @(airMarker.position.longitude)
+                 }
+               };
+  
     if (airMarker.onPress) airMarker.onPress(event);
     if (self.onMarkerPress) self.onMarkerPress(event);
     
