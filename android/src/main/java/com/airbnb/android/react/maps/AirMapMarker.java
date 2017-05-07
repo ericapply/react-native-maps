@@ -281,6 +281,10 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         return marker;
     }
 
+    public void setFeature(Marker marker) {
+        this.marker = marker;
+    }
+
     @Override
     public void addToMap(GoogleMap map) {
         marker = map.addMarker(getMarkerOptions());
