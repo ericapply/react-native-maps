@@ -13,17 +13,13 @@ public class BitmapDescriptorContainer
 {
     private int mBitmapByteCount;
     public BitmapDescriptor mBitmapDescriptor;
+    public Bitmap mBitmap;
 
     public BitmapDescriptorContainer(Bitmap bitmap)
     {
         mBitmapByteCount = bitmap.getByteCount();
         mBitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-
-    public BitmapDescriptorContainer(BitmapDescriptor bitmapDescriptor, int byteCount)
-    {
-        mBitmapByteCount = byteCount;
-        mBitmapDescriptor = bitmapDescriptor;
+        mBitmap = bitmap;
     }
 
     public int getByteCount()

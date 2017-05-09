@@ -30,7 +30,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
 
-import java.util.HashMap;
 import java.util.HashSet;
 
 import javax.annotation.Nullable;
@@ -58,7 +57,6 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
     private final Context context;
 
     private float markerHue = 0.0f; // should be between 0 and 360
-    private String imageUri;
     private BitmapDescriptor iconBitmapDescriptor;
     private Bitmap iconBitmap;
 
@@ -204,6 +202,7 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         if (uri == null) {
             // Render nothing
             iconBitmapDescriptor = null;
+            iconBitmap = null;
             update();
             return;
         }
@@ -216,10 +215,11 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
             e.printStackTrace();
         }
 
-        BitmapDescriptor bitmapDescriptor = LruCacheManager.getInstance().getBitmapFromMemCache(uri);
-        if(bitmapDescriptor!=null) {
+        BitmapDescriptorContainer bitmapDescriptorContainer = LruCacheManager.getInstance().getBitmapFromMemCache(uri);
+        if(bitmapDescriptorContainer!=null) {
             // Render icon from cached bitmap
-            iconBitmapDescriptor = bitmapDescriptor;
+            iconBitmapDescriptor = bitmapDescriptorContainer.mBitmapDescriptor;
+            iconBitmap = bitmapDescriptorContainer.mBitmap;
             update();
             Log.v(TAG, "Reusing Bitmap " + uri);
             return;
@@ -243,6 +243,7 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
                 if (dataSource.isFinished() && bitmap != null){
                     Log.v(TAG, "Finished Loading Bitmap from uri: " + uri);
                     iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(uri, bitmap);
+                    iconBitmap = bitmap;
                     dataSource.close();
                     update();
                     isCacheAdded.remove(uri);
@@ -320,6 +321,10 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         }
     }
 
+    public Bitmap getBitmapIcon() {
+        return this.iconBitmap;
+    }
+
     private MarkerOptions createMarkerOptions() {
         MarkerOptions options = new MarkerOptions().position(position);
         if (anchorIsSet) options.anchor(anchorX, anchorY);
@@ -361,7 +366,7 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         update();
     }
 
-    private Bitmap createDrawable() {
+    public Bitmap createDrawable() {
         int width = this.width <= 0 ? 100 : this.width;
         int height = this.height <= 0 ? 100 : this.height;
         this.buildDrawingCache();

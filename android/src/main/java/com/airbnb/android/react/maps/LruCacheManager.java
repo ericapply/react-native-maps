@@ -40,19 +40,17 @@ public class LruCacheManager {
     }
 
     public BitmapDescriptor addBitmapToMemoryCache(String key, Bitmap bitmap) {
-        BitmapDescriptor bitmapDescriptor = getBitmapFromMemCache(key);
-        if (bitmapDescriptor == null) {
-            bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
-            mMemoryCache.put(key, new BitmapDescriptorContainer(bitmapDescriptor, bitmap.getByteCount()));
+        BitmapDescriptorContainer bitmapDescriptorContainer = getBitmapFromMemCache(key);
+        if (bitmapDescriptorContainer == null) {
+            bitmapDescriptorContainer = new BitmapDescriptorContainer(bitmap);
+            mMemoryCache.put(key, bitmapDescriptorContainer);
         }
-        return bitmapDescriptor;
+        return bitmapDescriptorContainer.mBitmapDescriptor;
     }
 
-    public BitmapDescriptor getBitmapFromMemCache(String key) {
+    public BitmapDescriptorContainer getBitmapFromMemCache(String key) {
         BitmapDescriptorContainer bitmapDescriptorContainer = mMemoryCache.get(key);
-        if(bitmapDescriptorContainer == null)
-            return null;
-        return bitmapDescriptorContainer.mBitmapDescriptor;
+        return bitmapDescriptorContainer;
     }
 
 }

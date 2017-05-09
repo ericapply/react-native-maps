@@ -2,7 +2,9 @@ package com.airbnb.android.react.maps;
 
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
@@ -10,6 +12,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -34,6 +37,7 @@ import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -44,7 +48,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
-import com.google.maps.android.ui.IconGenerator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +59,8 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         GoogleMap.OnMarkerDragListener, OnMapReadyCallback {
+    private static final String TAG = AirMapView.class.getName();
+
     public GoogleMap map;
     private ProgressBar mapLoadingProgressBar;
     private RelativeLayout mapLoadingLayout;
@@ -88,7 +93,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     private final EventDispatcher eventDispatcher;
 
     private ClusterManager<AirMapMarker> mClusterManager;
-    private IconGenerator mClusterIconGenerator = null;
+    private ClusterMarkerIconGenerator mClusterIconGenerator = null;
 
     public AirMapView(ThemedReactContext reactContext, AirMapManager manager,
             GoogleMapOptions googleMapOptions) {
@@ -142,7 +147,8 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
         eventDispatcher = reactContext.getNativeModule(UIManagerModule.class).getEventDispatcher();
 
-        mClusterIconGenerator = new IconGenerator(reactContext);
+        mClusterIconGenerator = new ClusterMarkerIconGenerator(reactContext);
+
     }
 
     private class MarkerRenderer extends DefaultClusterRenderer<AirMapMarker> {
@@ -160,9 +166,22 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         protected void onBeforeClusterRendered(Cluster<AirMapMarker> cluster, MarkerOptions markerOptions) {
 
             AirMapMarker first = cluster.getItems().iterator().next();
-//            Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-//            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
-            markerOptions.icon(first.getIcon());
+            // Check if cluster icon with number has been cached
+            String bubbleKey = "bubble"+cluster.getSize();
+            BitmapDescriptorContainer cachedBitmap = LruCacheManager.getInstance().getBitmapFromMemCache(bubbleKey);
+            Bitmap icon;
+            if(cachedBitmap == null) {
+                Log.v(TAG, "Loading clusterIcon Bitmap with number " + cluster.getSize());
+                Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+                icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 21, -12);
+                LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
+            } else {
+                Log.v(TAG, "Reusing clusterIcon Bitmap with number " + cluster.getSize());
+
+                icon = cachedBitmap.mBitmap;
+            }
+
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
         }
 
         @Override
@@ -170,6 +189,22 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             // Always render clusters.
             return cluster.getSize() > 1;
         }
+    }
+
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2, float offsetX, float offsetY) {
+
+        float dp = Resources.getSystem().getDisplayMetrics().density;
+        float offsetXdp = offsetX * dp;
+        float offsetYdp = offsetY * dp;
+
+        float width = bmp1.getWidth() + 2 * ((bmp2.getWidth() + offsetXdp) - bmp1.getWidth());
+        float height = bmp1.getHeight() - offsetYdp;
+
+        Bitmap bmOverlay = Bitmap.createBitmap((int)width, (int)height, bmp1.getConfig());
+        Canvas canvas = new Canvas(bmOverlay);
+        canvas.drawBitmap(bmp1, (int)((bmp2.getWidth() + offsetXdp) - bmp1.getWidth()), -offsetYdp, null);
+        canvas.drawBitmap(bmp2, offsetXdp + ((bmp2.getWidth() + offsetXdp) - bmp1.getWidth()), 0, null);
+        return bmOverlay;
     }
 
     @Override
