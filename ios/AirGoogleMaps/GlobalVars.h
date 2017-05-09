@@ -17,6 +17,8 @@
 + (GlobalVars *)sharedInstance;
 
 - (UIImage *)getSharedUIImage:(NSString *)imageSrc;
+- (UIImage *)getSharedUIImageWithKey:(NSString *)key;
+- (void)setSharedUIImageWithKey:(NSString *)key withUIImage:(UIImage *)image;
 
 @property(strong, nonatomic, readwrite) NSMutableDictionary *dict;
 

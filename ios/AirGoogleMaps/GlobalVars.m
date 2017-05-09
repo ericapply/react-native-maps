@@ -44,6 +44,15 @@
   }
 }
 
+- (UIImage *)getSharedUIImageWithKey:(NSString *)key {
+  UIImage* cachedImage = dict[key];
+  return cachedImage;
+}
+
+- (void)setSharedUIImageWithKey:(NSString *)key withUIImage:(UIImage *)image {
+  dict[key] = image;
+}
+
 - (id)init {
   self = [super init];
   if (self) {

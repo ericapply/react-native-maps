@@ -23,6 +23,7 @@
 #import "GMUDefaultClusterIconGenerator.h"
 #import "GMUDefaultClusterRenderer.h"
 #import "GMUStaticCluster.h"
+#import "GlobalVars.h"
 
 @interface ClusterRenderer : GMUDefaultClusterRenderer
 @end
@@ -214,6 +215,11 @@ id regionAsJSON(MKCoordinateRegion region) {
     } else {
       GMUStaticCluster *clusteredMarker = (GMUStaticCluster *)clusterMarker;
       // Marker is a clustered marker
+      
+      // 1. Zoom into clustered marker
+      [self animateToCameraPosition:[GMSCameraPosition cameraWithTarget:clusteredMarker.position zoom:self.camera.zoom +2]];
+      
+      // 2. Send press event to JS
       markerPressEvent = @{
                            @"action": @"marker-press",
                            @"cluster": @(YES),
@@ -357,9 +363,55 @@ id regionAsJSON(MKCoordinateRegion region) {
     AIRGoogleMapMarker *annotation = (AIRGoogleMapMarker *)marker.userData;
     marker.icon = annotation.realMarker.icon;
   } else if ([marker.userData conformsToProtocol:@protocol(GMUCluster)]) {
-    id<GMUCluster> cluster = marker.userData;
-    marker.icon = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;
+    marker.icon = [self imageForCluster:marker.userData];
   }
+}
+
+- (UIImage *)imageForCluster:(id<GMUCluster>)cluster {
+  
+  NSUInteger clusterSize = cluster.items.count;
+  NSString *key = [NSString stringWithFormat:@"bubble%lu", (unsigned long)clusterSize];
+  UIImage *cachedImage = [[GlobalVars sharedInstance] getSharedUIImageWithKey:key];
+  
+  if(cachedImage == nil) {
+    // Load UIImage
+    UIView *textBubbleView = [[[NSBundle mainBundle] loadNibNamed:@"textBubble" owner:self options:nil] objectAtIndex:0];
+    UILabel *bubbleLabel =  (UILabel*)[textBubbleView viewWithTag:1];
+    bubbleLabel.text =[NSString stringWithFormat:@"%lu", (unsigned long)clusterSize];
+    
+    UIImage *bubbleLabelImage = [self imageWithView:textBubbleView];
+    UIImage *markerImage = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;
+    
+    cachedImage = [self imageByCombiningImage:markerImage withImage:bubbleLabelImage offsetX:21 offsetY:-12];
+    
+    [[GlobalVars sharedInstance] setSharedUIImageWithKey:key withUIImage:cachedImage];
+  }
+  return cachedImage;
+}
+
+- (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage offsetX:(float)offsetX offsetY:(float)offsetY {
+  UIImage *image = nil;
+  float deltaX = firstImage.size.width - secondImage.size.width;
+  CGSize newImageSize = CGSizeMake((offsetX-deltaX)*2 + firstImage.size.width, firstImage.size.height-offsetY);
+  UIGraphicsBeginImageContextWithOptions(newImageSize, NO, [[UIScreen mainScreen] scale]);
+  [firstImage drawAtPoint:CGPointMake(roundf((newImageSize.width-firstImage.size.width)/2), -offsetY)];
+  [secondImage drawAtPoint:CGPointMake((offsetX-deltaX)+offsetX, 0)];
+  image = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+
+  return image;
+}
+
+- (UIImage *) imageWithView:(UIView *)view
+{
+  UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.opaque, 0.0);
+  [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+  
+  UIImage * img = UIGraphicsGetImageFromCurrentImageContext();
+  
+  UIGraphicsEndImageContext();
+  
+  return img;
 }
 
 + (MKCoordinateRegion) makeGMSCameraPositionFromMap:(GMSMapView *)map andGMSCameraPosition:(GMSCameraPosition *)position {
