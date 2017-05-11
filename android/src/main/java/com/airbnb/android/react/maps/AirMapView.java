@@ -38,6 +38,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -165,16 +166,21 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         @Override
         protected void onBeforeClusterRendered(Cluster<AirMapMarker> cluster, MarkerOptions markerOptions) {
 
-            AirMapMarker first = cluster.getItems().iterator().next();
             // Check if cluster icon with number has been cached
             String bubbleKey = "bubble"+cluster.getSize();
             BitmapDescriptorContainer cachedBitmap = LruCacheManager.getInstance().getBitmapFromMemCache(bubbleKey);
             BitmapDescriptor iconBitmapDescriptor;
             if(cachedBitmap == null) {
-                Log.v(TAG, "Loading clusterIcon Bitmap with number " + cluster.getSize());
-                Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-                Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 21, -12);
-                iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
+                AirMapMarker first = cluster.getItems().iterator().next();
+                if(first != null) {
+                    Log.v(TAG, "Loading clusterIcon Bitmap with number " + cluster.getSize());
+                    Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+                    Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 21, -12);
+                    iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
+                } else {
+                    // Default to default marker
+                    iconBitmapDescriptor = BitmapDescriptorFactory.defaultMarker();
+                }
             } else {
                 Log.v(TAG, "Reusing clusterIcon Bitmap with number " + cluster.getSize());
                 iconBitmapDescriptor = cachedBitmap.mBitmapDescriptor;
