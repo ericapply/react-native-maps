@@ -37,7 +37,7 @@ import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -169,19 +169,18 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             // Check if cluster icon with number has been cached
             String bubbleKey = "bubble"+cluster.getSize();
             BitmapDescriptorContainer cachedBitmap = LruCacheManager.getInstance().getBitmapFromMemCache(bubbleKey);
-            Bitmap icon;
+            BitmapDescriptor iconBitmapDescriptor;
             if(cachedBitmap == null) {
                 Log.v(TAG, "Loading clusterIcon Bitmap with number " + cluster.getSize());
                 Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-                icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 21, -12);
-                LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
+                Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 21, -12);
+                iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
             } else {
                 Log.v(TAG, "Reusing clusterIcon Bitmap with number " + cluster.getSize());
-
-                icon = cachedBitmap.mBitmap;
+                iconBitmapDescriptor = cachedBitmap.mBitmapDescriptor;
             }
 
-            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
+            markerOptions.icon(iconBitmapDescriptor);
         }
 
         @Override
