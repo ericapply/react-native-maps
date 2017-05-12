@@ -2,6 +2,7 @@ package com.airbnb.android.react.maps;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.net.Uri;
 import android.util.Log;
@@ -226,38 +227,52 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         }
 
         Log.v(TAG, "Start Loading Bitmap from uri: " + uri);
-        // Load Bitmap from uri using Fresco
-        ImageRequest imageRequest = ImageRequestBuilder
-                .newBuilderWithSource(Uri.parse(uri))
-                .setAutoRotateEnabled(true)
-                .build();
 
-        ImagePipeline imagePipeline = Fresco.getImagePipeline();
-        final DataSource<CloseableReference<CloseableImage>>
-                dataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
-        isCacheAdded.add(uri);
-        dataSource.subscribe(new BaseBitmapDataSubscriber() {
+        // In Debug, uri will be http || https, use Fresco to load the Image
+        // In Release, uri will be image name
 
-            @Override
-            public void onNewResultImpl(@Nullable Bitmap bitmap) {
-                if (dataSource.isFinished() && bitmap != null){
-                    Log.v(TAG, "Finished Loading Bitmap from uri: " + uri);
-                    iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(uri, bitmap);
-                    iconBitmap = bitmap;
-                    dataSource.close();
-                    update();
+        if (uri.startsWith("http://") || uri.startsWith("https://") || uri.startsWith("file://")) {
+
+            // Load Bitmap from uri using Fresco
+            ImageRequest imageRequest = ImageRequestBuilder
+                    .newBuilderWithSource(Uri.parse(uri))
+                    .setAutoRotateEnabled(true)
+                    .build();
+
+            ImagePipeline imagePipeline = Fresco.getImagePipeline();
+            final DataSource<CloseableReference<CloseableImage>>
+                    dataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
+            isCacheAdded.add(uri);
+            dataSource.subscribe(new BaseBitmapDataSubscriber() {
+
+                @Override
+                public void onNewResultImpl(@Nullable Bitmap bitmap) {
+                    if (dataSource.isFinished() && bitmap != null) {
+                        Log.v(TAG, "Finished Loading Bitmap from uri: " + uri);
+                        iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(uri, bitmap);
+                        iconBitmap = bitmap;
+                        dataSource.close();
+                        update();
+                        isCacheAdded.remove(uri);
+                    }
+                }
+
+                @Override
+                public void onFailureImpl(DataSource dataSource) {
+                    if (dataSource != null) {
+                        dataSource.close();
+                    }
                     isCacheAdded.remove(uri);
                 }
-            }
-
-            @Override
-            public void onFailureImpl(DataSource dataSource) {
-                if (dataSource != null) {
-                    dataSource.close();
-                }
-                isCacheAdded.remove(uri);
-            }
-        }, CallerThreadExecutor.getInstance());
+            }, CallerThreadExecutor.getInstance());
+        } else {
+            Bitmap bitmap = getBitmapByDrawableName(uri);
+            iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(uri, bitmap);
+            iconBitmap = bitmap;
+            update();
+            Log.v(TAG, "Finished Loading Bitmap from drawable: " + uri);
+            return;
+        }
     }
 
     public MarkerOptions getMarkerOptions() {
@@ -453,6 +468,11 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
 
     private BitmapDescriptor getBitmapDescriptorByName(String name) {
         return BitmapDescriptorFactory.fromResource(getDrawableResourceByName(name));
+    }
+
+    private Bitmap getBitmapByDrawableName(String name) {
+        int resourceId = getDrawableResourceByName(name);
+        return BitmapFactory.decodeResource(getResources(), resourceId);
     }
 
     @Override

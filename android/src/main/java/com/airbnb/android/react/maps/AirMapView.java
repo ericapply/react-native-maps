@@ -172,7 +172,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             BitmapDescriptor iconBitmapDescriptor;
             if(cachedBitmap == null) {
                 AirMapMarker first = cluster.getItems().iterator().next();
-                if(first != null) {
+                if(first.getBitmapIcon() != null) {
                     Log.v(TAG, "Loading clusterIcon Bitmap with number " + cluster.getSize());
                     Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
                     Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 21, -12);
