@@ -263,16 +263,6 @@ id regionAsJSON(MKCoordinateRegion region) {
     if (airPolygon.onPress) airPolygon.onPress(event);
 }
 
-- (void)didTapPolygon:(GMSOverlay *)polygon {
-    AIRGMSPolygon *airPolygon = (AIRGMSPolygon *)polygon;
-
-    id event = @{@"action": @"polygon-press",
-                 @"id": airPolygon.identifier ?: @"unknown",
-                 };
-
-    if (airPolygon.onPress) airPolygon.onPress(event);
-}
-
 - (void)didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
   if (!self.onPress) return;
   self.onPress([self eventFromCoordinate:coordinate]);
