@@ -11,10 +11,30 @@
 #import "AIRGoogleMapPolyline.h"
 #import "AIRGoogleMapCircle.h"
 #import "AIRGoogleMapUrlTile.h"
+#import <Google-Maps-iOS-Utils/GMUMarkerClustering.h>
 #import <GoogleMaps/GoogleMaps.h>
 #import <MapKit/MapKit.h>
 #import <React/UIView+React.h>
 #import "RCTConvert+AirMap.h"
+#import "GMUGridBasedClusterAlgorithm.h"
+#import "GMUNonHierarchicalDistanceBasedAlgorithm.h"
+#import "GMUClusterManager.h"
+#import "GMUDefaultClusterIconGenerator.h"
+#import "GMUDefaultClusterRenderer.h"
+#import "GMUStaticCluster.h"
+#import "GlobalVars.h"
+
+@interface ClusterRenderer : GMUDefaultClusterRenderer
+@end
+
+@implementation ClusterRenderer
+
+// Show as a cluster for clusters whose size is >= 2.
+- (BOOL)shouldRenderAsCluster:(id<GMUCluster>)cluster atZoom:(float)zoom {
+  return cluster.count >= 2;
+}
+
+@end
 
 id regionAsJSON(MKCoordinateRegion region) {
   return @{
@@ -25,7 +45,7 @@ id regionAsJSON(MKCoordinateRegion region) {
            };
 }
 
-@interface AIRGoogleMap ()
+@interface AIRGoogleMap ()<GMUClusterRendererDelegate>
 
 - (id)eventFromCoordinate:(CLLocationCoordinate2D)coordinate;
 
@@ -47,7 +67,17 @@ id regionAsJSON(MKCoordinateRegion region) {
     _circles = [NSMutableArray array];
     _tiles = [NSMutableArray array];
     _initialRegionSet = false;
+    
+    // Init native google maps clustering
+    id<GMUClusterAlgorithm> algorithm = [[GMUNonHierarchicalDistanceBasedAlgorithm alloc] init];
+    id<GMUClusterIconGenerator> iconGenerator = [[GMUDefaultClusterIconGenerator alloc] init];
+    
+    ClusterRenderer *renderer = [[ClusterRenderer alloc] initWithMapView:self clusterIconGenerator:iconGenerator];
+    renderer.delegate = self;
+    
+    self.clusterManager = [[GMUClusterManager alloc] initWithMap:self algorithm:algorithm renderer:renderer];
   }
+  
   return self;
 }
 - (id)eventFromCoordinate:(CLLocationCoordinate2D)coordinate {
@@ -73,8 +103,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   // This is where we intercept them and do the appropriate underlying mapview action.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = self;
-    [self.markers addObject:marker];
+    if(marker.cluster) {
+      [self.clusterManager addItem:marker];
+    } else {
+      marker.realMarker.map = self;
+      [self.markers addObject:marker];
+    }
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = self;
@@ -109,8 +143,12 @@ id regionAsJSON(MKCoordinateRegion region) {
   // underlying mapview action here.
   if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
     AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = nil;
-    [self.markers removeObject:marker];
+    if(marker.cluster) {
+      [self.clusterManager removeItem:marker];
+    } else {
+      marker.realMarker.map = nil;
+      [self.markers removeObject:marker];
+    }
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = nil;
@@ -158,16 +196,61 @@ id regionAsJSON(MKCoordinateRegion region) {
 - (BOOL)didTapMarker:(GMSMarker *)marker {
   AIRGMSMarker *airMarker = (AIRGMSMarker *)marker;
 
-  id event = @{@"action": @"marker-press",
-               @"id": airMarker.identifier ?: @"unknown",
-              };
+  AIRGoogleMapMarker *clusterMarker = (AIRGoogleMapMarker *)airMarker.userData;
+  if(clusterMarker != nil) {
+    id markerPressEvent;
+    
+    if([clusterMarker respondsToSelector:@selector(identifier)]) {
+      markerPressEvent = @{
+                           @"action": @"marker-press",
+                           @"cluster": @(YES),
+                           @"count": @(1),
+                           @"id": clusterMarker.identifier,
+                           @"coordinate": @{
+                             @"latitude": @(clusterMarker.position.latitude),
+                             @"longitude": @(clusterMarker.position.longitude)
+                           }
+                         };
+    } else {
+      GMUStaticCluster *clusteredMarker = (GMUStaticCluster *)clusterMarker;
+      // Marker is a clustered marker
+      
+      // 1. Zoom into clustered marker
+      [self animateToCameraPosition:[GMSCameraPosition cameraWithTarget:clusteredMarker.position zoom:self.camera.zoom +2]];
+      
+      // 2. Send press event to JS
+      markerPressEvent = @{
+                           @"action": @"marker-press",
+                           @"cluster": @(YES),
+                           @"count": @(clusteredMarker.items.count),
+                           @"coordinate": @{
+                             @"latitude": @(clusteredMarker.position.latitude),
+                             @"longitude": @(clusteredMarker.position.longitude)
+                           }
+                         };
+    }
 
-  if (airMarker.onPress) airMarker.onPress(event);
-  if (self.onMarkerPress) self.onMarkerPress(event);
-
-  // TODO: not sure why this is necessary
-  [self setSelectedMarker:marker];
-  return NO;
+    self.onPress(markerPressEvent);
+    return NO;
+  } else {
+    
+    id event = @{@"action": @"marker-press",
+                 @"cluster": @(NO),
+                 @"count": @(1),
+                 @"id": airMarker.identifier,
+                 @"coordinate": @{
+                     @"latitude": @(airMarker.position.latitude),
+                     @"longitude": @(airMarker.position.longitude)
+                 }
+               };
+  
+    if (airMarker.onPress) airMarker.onPress(event);
+    if (self.onMarkerPress) self.onMarkerPress(event);
+    
+    // TODO: not sure why this is necessary
+    [self setSelectedMarker:marker];
+    return NO;
+  }
 }
 
 - (void)didTapPolygon:(GMSOverlay *)polygon {
@@ -290,6 +373,63 @@ id regionAsJSON(MKCoordinateRegion region) {
   return self.settings.myLocationButton;
 }
 
+- (void)renderer:(id<GMUClusterRenderer>)renderer willRenderMarker:(GMSMarker *)marker {
+  // Center the marker at the bottom of the image.
+  marker.groundAnchor = CGPointMake(0.5, 1.0);
+  if ([marker.userData isKindOfClass:[AIRGoogleMapMarker class]]) {
+    AIRGoogleMapMarker *annotation = (AIRGoogleMapMarker *)marker.userData;
+    marker.icon = annotation.realMarker.icon;
+  } else if ([marker.userData conformsToProtocol:@protocol(GMUCluster)]) {
+    marker.icon = [self imageForCluster:marker.userData];
+  }
+}
+
+- (UIImage *)imageForCluster:(id<GMUCluster>)cluster {
+  
+  NSUInteger clusterSize = cluster.items.count;
+  NSString *key = [NSString stringWithFormat:@"bubble%lu", (unsigned long)clusterSize];
+  UIImage *cachedImage = [[GlobalVars sharedInstance] getSharedUIImageWithKey:key];
+  
+  if(cachedImage == nil) {
+    // Load UIImage
+    UIView *textBubbleView = [[[NSBundle mainBundle] loadNibNamed:@"textBubble" owner:self options:nil] objectAtIndex:0];
+    UILabel *bubbleLabel =  (UILabel*)[textBubbleView viewWithTag:1];
+    bubbleLabel.text =[NSString stringWithFormat:@"%lu", (unsigned long)clusterSize];
+    
+    UIImage *bubbleLabelImage = [self imageWithView:textBubbleView];
+    UIImage *markerImage = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;
+    
+    cachedImage = [self imageByCombiningImage:markerImage withImage:bubbleLabelImage offsetX:21 offsetY:-12];
+    
+    [[GlobalVars sharedInstance] setSharedUIImageWithKey:key withUIImage:cachedImage];
+  }
+  return cachedImage;
+}
+
+- (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage offsetX:(float)offsetX offsetY:(float)offsetY {
+  UIImage *image = nil;
+  float deltaX = firstImage.size.width - secondImage.size.width;
+  CGSize newImageSize = CGSizeMake((offsetX-deltaX)*2 + firstImage.size.width, firstImage.size.height-offsetY);
+  UIGraphicsBeginImageContextWithOptions(newImageSize, NO, [[UIScreen mainScreen] scale]);
+  [firstImage drawAtPoint:CGPointMake(roundf((newImageSize.width-firstImage.size.width)/2), -offsetY)];
+  [secondImage drawAtPoint:CGPointMake((offsetX-deltaX)+offsetX, 0)];
+  image = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+
+  return image;
+}
+
+- (UIImage *) imageWithView:(UIView *)view
+{
+  UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.opaque, 0.0);
+  [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+  
+  UIImage * img = UIGraphicsGetImageFromCurrentImageContext();
+  
+  UIGraphicsEndImageContext();
+  
+  return img;
+}
 
 + (MKCoordinateRegion) makeGMSCameraPositionFromMap:(GMSMapView *)map andGMSCameraPosition:(GMSCameraPosition *)position {
   // solution from here: http://stackoverflow.com/a/16587735/1102215
@@ -325,5 +465,17 @@ id regionAsJSON(MKCoordinateRegion region) {
   GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] initWithCoordinate:a coordinate:b];
   return [map cameraForBounds:bounds insets:UIEdgeInsetsZero];
 }
+
+//- (BOOL)clusterManager:(GMUClusterManager *)clusterManager didTapCluster:(id<GMUCluster>)cluster {
+////  if (!self.onPress) return;
+//  id event = @{@"action": @"cluster-marker-press",
+//               @"items": cluster.items ?: nil,
+//               };
+//  
+//  if (self.onClusterMarkerPress) self.onClusterMarkerPress(event);
+//
+//  return NO;
+//  
+//}
 
 @end
