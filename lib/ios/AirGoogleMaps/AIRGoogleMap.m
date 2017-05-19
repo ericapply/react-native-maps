@@ -387,14 +387,23 @@ id regionAsJSON(MKCoordinateRegion region) {
 - (UIImage *)imageForCluster:(id<GMUCluster>)cluster {
   
   NSUInteger clusterSize = cluster.items.count;
-  NSString *key = [NSString stringWithFormat:@"bubble%lu", (unsigned long)clusterSize];
+  
+  NSString *clusterSizeString;
+  if(clusterSize<=10) {
+    clusterSizeString =[NSString stringWithFormat:@"%lu", (unsigned long)clusterSize];
+  } else if(clusterSize <= 99){
+    clusterSizeString = @"10+";
+  } else {
+    clusterSizeString = @"99+";
+  }
+  NSString *key = [NSString stringWithFormat:@"bubble%@", clusterSizeString];
   UIImage *cachedImage = [[GlobalVars sharedInstance] getSharedUIImageWithKey:key];
   
   if(cachedImage == nil) {
     // Load UIImage
     UIView *textBubbleView = [[[NSBundle mainBundle] loadNibNamed:@"textBubble" owner:self options:nil] objectAtIndex:0];
     UILabel *bubbleLabel =  (UILabel*)[textBubbleView viewWithTag:1];
-    bubbleLabel.text =[NSString stringWithFormat:@"%lu", (unsigned long)clusterSize];
+    bubbleLabel.text = clusterSizeString;
     
     UIImage *bubbleLabelImage = [self imageWithView:textBubbleView];
     UIImage *markerImage = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;

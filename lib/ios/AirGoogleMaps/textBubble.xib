@@ -27,10 +27,10 @@
                         <constraint firstAttribute="height" constant="31" id="snA-JZ-JKF"/>
                     </constraints>
                 </imageView>
-                <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="999+" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Koe-Fb-IeC" userLabel="bubbleLabel">
-                    <rect key="frame" x="0.5" y="9" width="31" height="13.5"/>
-                    <fontDescription key="fontDescription" type="boldSystem" pointSize="11"/>
-                    <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="99+" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Koe-Fb-IeC" userLabel="bubbleLabel">
+                    <rect key="frame" x="6" y="10.5" width="19.5" height="11"/>
+                    <fontDescription key="fontDescription" type="boldSystem" pointSize="9"/>
+                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                     <nil key="highlightedColor"/>
                 </label>
             </subviews>
@@ -43,11 +43,14 @@
                 <constraint firstItem="Koe-Fb-IeC" firstAttribute="centerY" secondItem="Fwp-Oy-jPw" secondAttribute="centerY" id="q9X-gC-Tde"/>
                 <constraint firstItem="Fwp-Oy-jPw" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="vYm-pu-Xkz"/>
             </constraints>
+            <nil key="simulatedStatusBarMetrics"/>
+            <nil key="simulatedTopBarMetrics"/>
+            <nil key="simulatedBottomBarMetrics"/>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <point key="canvasLocation" x="32.5" y="69.5"/>
         </view>
     </objects>
     <resources>
-        <image name="oval" width="31" height="31"/>
+        <image name="oval" width="26" height="26"/>
     </resources>
 </document>
