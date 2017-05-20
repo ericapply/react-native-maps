@@ -408,20 +408,24 @@ id regionAsJSON(MKCoordinateRegion region) {
     UIImage *bubbleLabelImage = [self imageWithView:textBubbleView];
     UIImage *markerImage = ((AIRGoogleMapMarker *)cluster.items.firstObject).realMarker.icon;
     
-    cachedImage = [self imageByCombiningImage:markerImage withImage:bubbleLabelImage offsetX:21 offsetY:-12];
+    cachedImage = [self imageByCombiningImage:markerImage withImage:bubbleLabelImage left:13 top:13];
     
     [[GlobalVars sharedInstance] setSharedUIImageWithKey:key withUIImage:cachedImage];
   }
   return cachedImage;
 }
 
-- (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage offsetX:(float)offsetX offsetY:(float)offsetY {
+- (UIImage*)imageByCombiningImage:(UIImage*)firstImage withImage:(UIImage*)secondImage left:(float)left top:(float)top {
   UIImage *image = nil;
-  float deltaX = firstImage.size.width - secondImage.size.width;
-  CGSize newImageSize = CGSizeMake((offsetX-deltaX)*2 + firstImage.size.width, firstImage.size.height-offsetY);
+  
+  int width = firstImage.size.width + secondImage.size.width;
+  int height = firstImage.size.height + secondImage.size.height;
+  CGSize newImageSize = CGSizeMake(width, height);
+  
   UIGraphicsBeginImageContextWithOptions(newImageSize, NO, [[UIScreen mainScreen] scale]);
-  [firstImage drawAtPoint:CGPointMake(roundf((newImageSize.width-firstImage.size.width)/2), -offsetY)];
-  [secondImage drawAtPoint:CGPointMake((offsetX-deltaX)+offsetX, 0)];
+  [firstImage drawAtPoint:CGPointMake(0, top)];
+  [secondImage drawAtPoint:CGPointMake(left, 0)];
+  
   image = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
 
