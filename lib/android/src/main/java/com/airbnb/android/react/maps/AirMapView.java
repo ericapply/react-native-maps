@@ -204,22 +204,32 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         protected void onBeforeClusterRendered(Cluster<AirMapMarker> cluster, MarkerOptions markerOptions) {
 
             // Check if cluster icon with number has been cached
-            String bubbleKey = "bubble"+cluster.getSize();
+            int clusterSize = cluster.getSize();
+            String clusterSizeStr;
+            if(clusterSize<=10) {
+                clusterSizeStr = String.valueOf(clusterSize);
+            } else if(clusterSize<=99) {
+                clusterSizeStr = "10+";
+            } else {
+                clusterSizeStr = "99+";
+            }
+            String bubbleKey = "bubble"+clusterSizeStr;
             BitmapDescriptorContainer cachedBitmap = LruCacheManager.getInstance().getBitmapFromMemCache(bubbleKey);
             BitmapDescriptor iconBitmapDescriptor;
             if(cachedBitmap == null) {
                 AirMapMarker first = cluster.getItems().iterator().next();
                 if(first.getBitmapIcon() != null) {
-                    Log.v(TAG, "Loading clusterIcon Bitmap with number " + cluster.getSize());
-                    Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-                    Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 21, -12);
+
+                    Log.v(TAG, "Loading clusterIcon Bitmap with number " + clusterSizeStr);
+                    Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(clusterSizeStr);
+                    Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 13, 13);
                     iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
                 } else {
                     // Default to default marker
                     iconBitmapDescriptor = BitmapDescriptorFactory.defaultMarker();
                 }
             } else {
-                Log.v(TAG, "Reusing clusterIcon Bitmap with number " + cluster.getSize());
+                Log.v(TAG, "Reusing clusterIcon Bitmap with number " + clusterSizeStr);
                 iconBitmapDescriptor = cachedBitmap.mBitmapDescriptor;
             }
 
@@ -233,19 +243,14 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         }
     }
 
-    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2, float offsetX, float offsetY) {
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2, int left, int top) {
 
         float dp = Resources.getSystem().getDisplayMetrics().density;
-        float offsetXdp = offsetX * dp;
-        float offsetYdp = offsetY * dp;
 
-        float width = bmp1.getWidth() + 2 * ((bmp2.getWidth() + offsetXdp) - bmp1.getWidth());
-        float height = bmp1.getHeight() - offsetYdp;
-
-        Bitmap bmOverlay = Bitmap.createBitmap((int)width, (int)height, bmp1.getConfig());
+        Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth() + bmp2.getWidth(), bmp1.getHeight()+bmp2.getHeight(), bmp1.getConfig());
         Canvas canvas = new Canvas(bmOverlay);
-        canvas.drawBitmap(bmp1, (int)((bmp2.getWidth() + offsetXdp) - bmp1.getWidth()), -offsetYdp, null);
-        canvas.drawBitmap(bmp2, offsetXdp + ((bmp2.getWidth() + offsetXdp) - bmp1.getWidth()), 0, null);
+        canvas.drawBitmap(bmp1, 0, top*dp, null);
+        canvas.drawBitmap(bmp2, left*dp, 0, null);
         return bmOverlay;
     }
 
