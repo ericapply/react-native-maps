@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="12120" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="12120" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -17,18 +17,18 @@
             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
             <subviews>
                 <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="oval" translatesAutoresizingMaskIntoConstraints="NO" id="Fwp-Oy-jPw">
-                    <rect key="frame" x="0.0" y="0.0" width="31" height="31"/>
+                    <rect key="frame" x="2.5" y="2.5" width="26" height="26"/>
                     <accessibility key="accessibilityConfiguration">
                         <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                     </accessibility>
                     <constraints>
-                        <constraint firstAttribute="width" constant="31" id="4du-sS-K9T"/>
+                        <constraint firstAttribute="width" constant="26" id="4du-sS-K9T"/>
                         <constraint firstAttribute="width" secondItem="Fwp-Oy-jPw" secondAttribute="height" multiplier="1:1" id="klm-KG-1Js"/>
-                        <constraint firstAttribute="height" constant="31" id="snA-JZ-JKF"/>
+                        <constraint firstAttribute="height" constant="26" id="snA-JZ-JKF"/>
                     </constraints>
                 </imageView>
                 <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="99+" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Koe-Fb-IeC" userLabel="bubbleLabel">
-                    <rect key="frame" x="6" y="10.5" width="19.5" height="11"/>
+                    <rect key="frame" x="6.5" y="10" width="19.5" height="11"/>
                     <fontDescription key="fontDescription" type="boldSystem" pointSize="9"/>
                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                     <nil key="highlightedColor"/>
@@ -38,7 +38,7 @@
                 <accessibilityTraits key="traits" notEnabled="YES"/>
             </accessibility>
             <constraints>
-                <constraint firstItem="Koe-Fb-IeC" firstAttribute="centerX" secondItem="Fwp-Oy-jPw" secondAttribute="centerX" id="gze-CV-K7e"/>
+                <constraint firstItem="Koe-Fb-IeC" firstAttribute="centerX" secondItem="Fwp-Oy-jPw" secondAttribute="centerX" constant="0.5" id="gze-CV-K7e"/>
                 <constraint firstItem="Fwp-Oy-jPw" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="k2w-KJ-gtU"/>
                 <constraint firstItem="Koe-Fb-IeC" firstAttribute="centerY" secondItem="Fwp-Oy-jPw" secondAttribute="centerY" id="q9X-gC-Tde"/>
                 <constraint firstItem="Fwp-Oy-jPw" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="vYm-pu-Xkz"/>

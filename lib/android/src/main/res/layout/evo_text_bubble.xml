@@ -6,8 +6,8 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="31dp"
-        android:layout_height="31dp"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
         android:src="@drawable/oval" />
 
     <RelativeLayout
@@ -20,7 +20,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#000000"
-            android:textSize="12sp" />
+            android:textStyle="bold"
+            android:textSize="10sp" />
     </RelativeLayout>
 
 </RelativeLayout>
