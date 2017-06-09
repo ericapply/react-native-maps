@@ -145,7 +145,8 @@ public class AirMapPolygon extends AirMapFeature {
     @Override
     public void addToMap(GoogleMap map) {
         polygon = map.addPolygon(getPolygonOptions());
-        polygon.setClickable(true);
+        // TODO: Disable onClickEvent because polygon was eating up the onClick even when there is no onPress prop
+        polygon.setClickable(false);
     }
 
     @Override
