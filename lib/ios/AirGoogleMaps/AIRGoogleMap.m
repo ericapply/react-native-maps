@@ -248,7 +248,7 @@ id regionAsJSON(MKCoordinateRegion region) {
     if (self.onMarkerPress) self.onMarkerPress(event);
     
     // TODO: not sure why this is necessary
-    [self setSelectedMarker:marker];
+    if(self.selectedMarker) [self setSelectedMarker:marker];
     return NO;
   }
 }
