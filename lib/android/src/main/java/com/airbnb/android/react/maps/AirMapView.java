@@ -303,29 +303,30 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             }
         });
 
-//        mClusterManager.getMarkerCollection().setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//                AirMapMarker airMapMarker = markerMap.get(marker);
-//                if(airMapMarker == null) {
-//                    // Maker is a cluster
-//                    WritableMap event;
-//                    event = makeClickEventData(marker.getPosition());
-//                    event.putString("action", "marker-press");
-//                    manager.pushEvent(context, view, "onPress", event);
-//                    return true;
-//                } else {
-//                    WritableMap event;
-//                    event = makeClickEventData(marker.getPosition());
-//                    event.putString("action", "marker-press");
-//                    event.putString("id", airMapMarker.getIdentifier());
-//                    event.putInt("count", 1);
-//                    event.putDouble("zoom", map.getCameraPosition().zoom);
-//                    manager.pushEvent(context, view, "onPress", event);
-//                    return true;
-//                }
-//            }
-//        });
+        mClusterManager.getMarkerCollection().setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                AirMapMarker airMapMarker = markerMap.get(marker);
+                if(airMapMarker == null) {
+                    // Marker is a single cluster
+                    WritableMap event;
+                    event = makeClickEventData(marker.getPosition());
+                    event.putInt("count", 1);
+                    event.putString("action", "marker-press");
+                    manager.pushEvent(context, view, "onPress", event);
+                    return true;
+                } else {
+                    WritableMap event;
+                    event = makeClickEventData(marker.getPosition());
+                    event.putString("action", "marker-press");
+                    event.putString("id", airMapMarker.getIdentifier());
+                    event.putInt("count", 1);
+                    event.putDouble("zoom", map.getCameraPosition().zoom);
+                    manager.pushEvent(context, view, "onPress", event);
+                    return true;
+                }
+            }
+        });
 
         map.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
             @Override
