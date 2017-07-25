@@ -383,7 +383,8 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
                 } else {
                     marker.setInfoWindowAnchor(0.5f, 0);
                 }
-                if(mClusterManager != null) {
+
+                if(cluster && mClusterManager != null) {
                     mClusterManager.cluster();
                 }
             }
