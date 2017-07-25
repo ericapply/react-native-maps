@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
+import com.google.maps.android.clustering.ClusterManager;
 
 import java.util.HashSet;
 
@@ -38,6 +40,8 @@ import javax.annotation.Nullable;
 public class AirMapMarker extends AirMapFeature implements ClusterItem {
 
     private static final String TAG = AirMapMarker.class.getName();
+
+    private ClusterManager<AirMapMarker> mClusterManager;
 
     private MarkerOptions markerOptions;
     private Marker marker;
@@ -201,13 +205,12 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
 
     public void setImage(final String uri) {
         if (uri == null) {
-            // Render nothing
+            // Render default marker
             iconBitmapDescriptor = null;
             iconBitmap = null;
             update();
             return;
         }
-
 
         try {
             while(isCacheAdded.contains(uri))
@@ -222,6 +225,7 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
             iconBitmapDescriptor = bitmapDescriptorContainer.mBitmapDescriptor;
             iconBitmap = bitmapDescriptorContainer.mBitmap;
             update();
+
             Log.v(TAG, "Reusing Bitmap " + uri);
             return;
         }
@@ -297,8 +301,9 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         return marker;
     }
 
-    public void setFeature(Marker marker) {
+    public void setFeature(Marker marker, ClusterManager<AirMapMarker> clusterManager) {
         this.marker = marker;
+        this.mClusterManager = clusterManager;
     }
 
     @Override
@@ -360,19 +365,30 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
             return;
         }
 
-        marker.setIcon(getIcon());
+        Handler mainHandler = new Handler(context.getMainLooper());
 
-        if (anchorIsSet) {
-            marker.setAnchor(anchorX, anchorY);
-        } else {
-            marker.setAnchor(0.5f, 1.0f);
-        }
+        Runnable myRunnable = new Runnable() {
+            @Override
+            public void run() {
+                marker.setIcon(getIcon());
 
-        if (calloutAnchorIsSet) {
-            marker.setInfoWindowAnchor(calloutAnchorX, calloutAnchorY);
-        } else {
-            marker.setInfoWindowAnchor(0.5f, 0);
-        }
+                if (anchorIsSet) {
+                    marker.setAnchor(anchorX, anchorY);
+                } else {
+                    marker.setAnchor(0.5f, 1.0f);
+                }
+
+                if (calloutAnchorIsSet) {
+                    marker.setInfoWindowAnchor(calloutAnchorX, calloutAnchorY);
+                } else {
+                    marker.setInfoWindowAnchor(0.5f, 0);
+                }
+                if(mClusterManager != null) {
+                    mClusterManager.cluster();
+                }
+            }
+        };
+        mainHandler.post(myRunnable);
     }
 
     public void update(int width, int height) {

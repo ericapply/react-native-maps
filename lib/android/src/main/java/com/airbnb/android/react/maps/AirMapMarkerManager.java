@@ -86,8 +86,8 @@ public class AirMapMarkerManager extends ViewGroupManager<AirMapMarker> {
     }
 
     @ReactProp(name = "image")
-    public void setImage(AirMapMarker view, @Nullable String source) {
-        view.setImage(source);
+    public void setImage(AirMapMarker airMapMarker, @Nullable String source) {
+        airMapMarker.setImage(source);
     }
 
     @ReactProp(name = "pinColor", defaultInt = Color.RED, customType = "Color")

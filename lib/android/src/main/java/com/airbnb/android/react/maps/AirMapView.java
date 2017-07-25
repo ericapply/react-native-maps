@@ -196,6 +196,13 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         }
 
         @Override
+        protected void onClusterItemRendered(AirMapMarker airMapMarker, Marker marker) {
+            super.onClusterItemRendered(airMapMarker, marker);
+            markerMap.put(marker, airMapMarker);
+            airMapMarker.setFeature(marker, mClusterManager);
+        }
+
+        @Override
         protected void onBeforeClusterItemRendered(AirMapMarker post, MarkerOptions markerOptions) {
             markerOptions.icon(post.getIcon());
         }
@@ -308,7 +315,13 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             public boolean onMarkerClick(Marker marker) {
                 AirMapMarker airMapMarker = markerMap.get(marker);
                 if(airMapMarker == null) {
-                    // Marker is a single cluster
+                    // Marker is a single cluster, look up the AirMapMarker from markerMap
+                    airMapMarker = markerMap.get(marker);
+                }
+
+                if(airMapMarker == null) {
+                    // This should not happen
+                    Log.e(TAG, "Failed to find AirMapMarker from markerMap");
                     WritableMap event;
                     event = makeClickEventData(marker.getPosition());
                     event.putInt("count", 1);
@@ -373,6 +386,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
                 WritableMap event = makeClickEventData(point);
                 event.putString("action", "press");
                 manager.pushEvent(context, view, "onPress", event);
+                mClusterManager.cluster();
             }
         });
 
@@ -585,7 +599,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
             } else {
                 // Add marker to MarkerCollection directly. This makes markers not cluster.
                 Marker marker = mClusterManager.getMarkerCollection().addMarker(annotation.getMarkerOptions());
-                annotation.setFeature(marker);
+                annotation.setFeature(marker, mClusterManager);
                 markerMap.put(marker, annotation);
             }
             features.add(index, annotation);
