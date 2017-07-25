@@ -29,9 +29,14 @@
 
 @implementation ClusterRenderer
 
-// Show as a cluster for clusters whose size is >= 2.
 - (BOOL)shouldRenderAsCluster:(id<GMUCluster>)cluster atZoom:(float)zoom {
-  return cluster.count >= 2;
+
+  // If zoom level is greater than 16, don't cluster markers
+  if(zoom > 16) {
+    return NO;
+  }
+  
+  return cluster.count > 1;
 }
 
 @end
