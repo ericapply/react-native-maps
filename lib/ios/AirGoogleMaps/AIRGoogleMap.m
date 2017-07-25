@@ -109,6 +109,7 @@ id regionAsJSON(MKCoordinateRegion region) {
       marker.realMarker.map = self;
       [self.markers addObject:marker];
     }
+    marker.clusterManager = self.clusterManager;
   } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
     AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
     polygon.polygon.map = self;

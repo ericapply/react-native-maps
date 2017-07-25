@@ -14,6 +14,7 @@
 
 @interface AIRGoogleMapMarker : UIView<GMUClusterItem>
 
+@property (nonatomic, assign) GMUClusterManager *clusterManager;
 @property (nonatomic, weak) RCTBridge *bridge;
 @property (nonatomic, strong) AIRGoogleMapCallout *calloutView;
 @property (nonatomic, strong) NSString *identifier;

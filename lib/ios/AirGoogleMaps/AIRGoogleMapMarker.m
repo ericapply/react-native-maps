@@ -174,6 +174,9 @@ CGRect unionRect(CGRect a, CGRect b) {
 - (void)setCoordinate:(CLLocationCoordinate2D)coordinate {
   _realMarker.position = coordinate;
   _position = coordinate;
+  if(_cluster) {
+    [self.clusterManager cluster];
+  }
 }
 
 - (CLLocationCoordinate2D)coordinate {
@@ -200,12 +203,18 @@ CGRect unionRect(CGRect a, CGRect b) {
 - (void)setOpacity:(double)opacity
 {
   _realMarker.opacity = opacity;
+  if(_cluster) {
+    [self.clusterManager cluster];
+  }
 }
 
 - (void)setImageSrc:(NSString *)imageSrc
 {
   UIImage * image = [[GlobalVars sharedInstance] getSharedUIImage:imageSrc];
   [self setIcon:image];
+  if(_cluster) {
+    [self.clusterManager cluster];
+  }
 }
 
 - (void)setTitle:(NSString *)title {
@@ -227,6 +236,9 @@ CGRect unionRect(CGRect a, CGRect b) {
 - (void)setPinColor:(UIColor *)pinColor {
   _pinColor = pinColor;
   _realMarker.icon = [GMSMarker markerImageWithColor:pinColor];
+  if(_cluster) {
+    [self.clusterManager cluster];
+  }
 }
 
 - (void)setAnchor:(CGPoint)anchor {
