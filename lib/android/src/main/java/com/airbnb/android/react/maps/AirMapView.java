@@ -57,6 +57,7 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -245,8 +246,43 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
         @Override
         protected boolean shouldRenderAsCluster(Cluster cluster) {
-            // Always render clusters.
-            return cluster.getSize() > 1;
+
+            // Don't render as cluster if the size is smaller than 5 and distance between them is very small.
+            int size = cluster.getSize();
+            if(size > 1 && size < 5) {
+                Iterator<AirMapMarker> itr = cluster.getItems().iterator();
+                List<AirMapMarker> airMapMarkerList = new ArrayList<AirMapMarker>();
+                while(itr.hasNext()) {
+                    airMapMarkerList.add(itr.next());
+                }
+
+                float smallestDistance = Float.MAX_VALUE;
+                for(int i=0; i<airMapMarkerList.size() - 1; i++) {
+                    for(int j=i+1; j<airMapMarkerList.size(); j++) {
+                        AirMapMarker first = airMapMarkerList.get(i);
+                        AirMapMarker second = airMapMarkerList.get(j);
+
+                        // Calculate distance between first and second marker
+                        float firstLat = (float)first.getPosition().latitude;
+                        float firstLng = (float)first.getPosition().longitude;
+                        float secondLat = (float)second.getPosition().latitude;
+                        float secondLng = (float)second.getPosition().longitude;
+                        float dist = LatLngBoundsUtils.dist(firstLat, firstLng, secondLat, secondLng);
+
+                        if(smallestDistance > dist) {
+                            smallestDistance = dist;
+                        }
+                    }
+                }
+
+                // If smallest distance is smaller than 20 metres, don't cluster them
+                if(smallestDistance < 20) {
+                    return false;
+                }
+            }
+
+            // Render as cluster if size is 2 or more.
+            return size > 1;
         }
     }
 
