@@ -736,6 +736,12 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         }
     }
 
+    public void refresh() {
+        if(mClusterManager!=null) {
+            mClusterManager.cluster();
+        }
+    }
+
     public void animateToCoordinate(LatLng coordinate, int duration) {
         if (map != null) {
             startMonitoringRegion();
