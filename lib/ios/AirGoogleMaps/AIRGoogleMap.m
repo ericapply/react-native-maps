@@ -215,7 +215,8 @@ id regionAsJSON(MKCoordinateRegion region) {
                            @"coordinate": @{
                              @"latitude": @(clusterMarker.position.latitude),
                              @"longitude": @(clusterMarker.position.longitude)
-                           }
+                           },
+                           @"zoom": @(self.camera.zoom)
                          };
     } else {
       GMUStaticCluster *clusteredMarker = (GMUStaticCluster *)clusterMarker;
@@ -232,7 +233,8 @@ id regionAsJSON(MKCoordinateRegion region) {
                            @"coordinate": @{
                              @"latitude": @(clusteredMarker.position.latitude),
                              @"longitude": @(clusteredMarker.position.longitude)
-                           }
+                           },
+                           @"zoom": @(self.camera.zoom)
                          };
     }
 
@@ -247,7 +249,8 @@ id regionAsJSON(MKCoordinateRegion region) {
                  @"coordinate": @{
                      @"latitude": @(airMarker.position.latitude),
                      @"longitude": @(airMarker.position.longitude)
-                 }
+                 },
+                 @"zoom": @(self.camera.zoom)
                };
   
     if (airMarker.onPress) airMarker.onPress(event);

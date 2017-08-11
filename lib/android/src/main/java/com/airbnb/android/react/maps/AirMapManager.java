@@ -35,6 +35,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
     private static final int FIT_TO_SUPPLIED_MARKERS = 4;
     private static final int FIT_TO_COORDINATES = 5;
     private static final int REFRESH = 6;
+    private static final int ANIMATE_TO_LATLNG_ZOOM = 7;
 
     private final Map<String, Integer> MAP_TYPES = MapBuilder.of(
             "standard", GoogleMap.MAP_TYPE_NORMAL,
@@ -226,6 +227,15 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
 
             case REFRESH:
                 view.refresh();
+                break;
+
+            case ANIMATE_TO_LATLNG_ZOOM:
+                ReadableMap position = args.getMap(0);
+                double zoom = args.getDouble(1);
+                duration = args.getInt(2);
+                lng = position.getDouble("longitude");
+                lat = position.getDouble("latitude");
+                view.animateToPosition(new LatLng(lat, lng), (float)zoom, duration);
                 break;
         }
     }

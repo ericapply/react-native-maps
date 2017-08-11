@@ -83,6 +83,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     private boolean handlePanDrag = false;
     private boolean moveOnMarkerPress = true;
     private boolean cacheEnabled = false;
+    private float zoom = 14;
 
     private static final String[] PERMISSIONS = new String[] {
             "android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"};
@@ -247,42 +248,49 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         @Override
         protected boolean shouldRenderAsCluster(Cluster cluster) {
 
-            // Don't render as cluster if the size is smaller than 5 and distance between them is very small.
-            int size = cluster.getSize();
-            if(size > 1 && size < 5) {
-                Iterator<AirMapMarker> itr = cluster.getItems().iterator();
-                List<AirMapMarker> airMapMarkerList = new ArrayList<AirMapMarker>();
-                while(itr.hasNext()) {
-                    airMapMarkerList.add(itr.next());
-                }
-
-                float smallestDistance = Float.MAX_VALUE;
-                for(int i=0; i<airMapMarkerList.size() - 1; i++) {
-                    for(int j=i+1; j<airMapMarkerList.size(); j++) {
-                        AirMapMarker first = airMapMarkerList.get(i);
-                        AirMapMarker second = airMapMarkerList.get(j);
-
-                        // Calculate distance between first and second marker
-                        float firstLat = (float)first.getPosition().latitude;
-                        float firstLng = (float)first.getPosition().longitude;
-                        float secondLat = (float)second.getPosition().latitude;
-                        float secondLng = (float)second.getPosition().longitude;
-                        float dist = LatLngBoundsUtils.dist(firstLat, firstLng, secondLat, secondLng);
-
-                        if(smallestDistance > dist) {
-                            smallestDistance = dist;
-                        }
-                    }
-                }
-
-                // If smallest distance is smaller than 20 metres, don't cluster them
-                if(smallestDistance < 20) {
-                    return false;
-                }
+            if(zoom > 16) {
+                return false;
             }
-
+            int size = cluster.getSize();
             // Render as cluster if size is 2 or more.
             return size > 1;
+
+            // Don't render as cluster if the size is smaller than 5 and distance between them is very small.
+//            int size = cluster.getSize();
+//            if(size > 1 && size < 5) {
+//                Iterator<AirMapMarker> itr = cluster.getItems().iterator();
+//                List<AirMapMarker> airMapMarkerList = new ArrayList<AirMapMarker>();
+//                while(itr.hasNext()) {
+//                    airMapMarkerList.add(itr.next());
+//                }
+//
+//                float smallestDistance = Float.MAX_VALUE;
+//                for(int i=0; i<airMapMarkerList.size() - 1; i++) {
+//                    for(int j=i+1; j<airMapMarkerList.size(); j++) {
+//                        AirMapMarker first = airMapMarkerList.get(i);
+//                        AirMapMarker second = airMapMarkerList.get(j);
+//
+//                        // Calculate distance between first and second marker
+//                        float firstLat = (float)first.getPosition().latitude;
+//                        float firstLng = (float)first.getPosition().longitude;
+//                        float secondLat = (float)second.getPosition().latitude;
+//                        float secondLng = (float)second.getPosition().longitude;
+//                        float dist = LatLngBoundsUtils.dist(firstLat, firstLng, secondLat, secondLng);
+//
+//                        if(smallestDistance > dist) {
+//                            smallestDistance = dist;
+//                        }
+//                    }
+//                }
+//
+//                // If smallest distance is smaller than 20 metres, don't cluster them
+//                if(smallestDistance < 20) {
+//                    return false;
+//                }
+//            }
+
+            // Render as cluster if size is 2 or more.
+//            return size > 1;
         }
     }
 
@@ -432,6 +440,14 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
                 WritableMap event = makeClickEventData(point);
                 event.putString("action", "long-press");
                 manager.pushEvent(context, view, "onLongPress", makeClickEventData(point));
+            }
+        });
+
+        map.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+            @Override
+            public void onCameraMove() {
+                CameraPosition position = map.getCameraPosition();
+                zoom = position.zoom;
             }
         });
 
@@ -733,6 +749,13 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         if (map != null) {
             startMonitoringRegion();
             map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0), duration, null);
+        }
+    }
+
+    public void animateToPosition(LatLng position, float zoom, int duration) {
+        if (map != null) {
+            startMonitoringRegion();
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom), duration, null);
         }
     }
 
