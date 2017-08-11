@@ -340,7 +340,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
                 event.putString("action", "marker-press");
                 event.putInt("count", cluster.getItems().size());
                 event.putDouble("zoom", map.getCameraPosition().zoom);
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(cluster.getPosition(), map.getCameraPosition().zoom+2f));
+//                map.animateCamera(CameraUpdateFactory.newLatLngZoom(cluster.getPosition(), map.getCameraPosition().zoom+2f));
                 manager.pushEvent(context, view, "onPress", event);
                 return true;
             }

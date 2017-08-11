@@ -222,7 +222,7 @@ id regionAsJSON(MKCoordinateRegion region) {
       // Marker is a clustered marker
       
       // 1. Zoom into clustered marker
-      [self animateToCameraPosition:[GMSCameraPosition cameraWithTarget:clusteredMarker.position zoom:self.camera.zoom +2]];
+      // [self animateToCameraPosition:[GMSCameraPosition cameraWithTarget:clusteredMarker.position zoom:self.camera.zoom +2]];
       
       // 2. Send press event to JS
       markerPressEvent = @{
