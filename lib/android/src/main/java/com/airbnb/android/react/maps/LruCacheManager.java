@@ -50,6 +50,12 @@ public class LruCacheManager {
 
     public BitmapDescriptorContainer getBitmapFromMemCache(String key) {
         BitmapDescriptorContainer bitmapDescriptorContainer = mMemoryCache.get(key);
+        if(bitmapDescriptorContainer != null) {
+            if(bitmapDescriptorContainer.mBitmap == null || bitmapDescriptorContainer.mBitmap.isRecycled()){
+                mMemoryCache.remove(key);
+                return null;
+            }
+        }
         return bitmapDescriptorContainer;
     }
 

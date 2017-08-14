@@ -231,8 +231,14 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
                     Log.v(TAG, "Loading clusterIcon Bitmap with number " + clusterSizeStr);
                     Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(clusterSizeStr);
-                    Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 13, 13);
-                    iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
+                    try {
+                        Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 13, 13);
+                        iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
+                    } catch(Exception e) {
+                        Log.e(TAG, "Failed to overlay textBubbleBitmap onto a bitmap with number " + clusterSizeStr, e);
+                        iconBitmapDescriptor = first.getIcon();
+                    }
+
                 } else {
                     // Default to default marker
                     iconBitmapDescriptor = BitmapDescriptorFactory.defaultMarker();
@@ -295,7 +301,6 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     }
 
     private Bitmap overlay(Bitmap bmp1, Bitmap bmp2, int left, int top) {
-
         float dp = Resources.getSystem().getDisplayMetrics().density;
 
         Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth() + bmp2.getWidth(), bmp1.getHeight()+bmp2.getHeight(), bmp1.getConfig());
