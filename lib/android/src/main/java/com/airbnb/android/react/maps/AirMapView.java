@@ -232,7 +232,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
                     Log.v(TAG, "Loading clusterIcon Bitmap with number " + clusterSizeStr);
                     Bitmap textBubbleBitmap = mClusterIconGenerator.makeIcon(clusterSizeStr);
                     try {
-                        Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap, 13, 13);
+                        Bitmap icon = overlay(first.getBitmapIcon(), textBubbleBitmap);
                         iconBitmapDescriptor = LruCacheManager.getInstance().addBitmapToMemoryCache(bubbleKey, icon);
                     } catch(Exception e) {
                         Log.e(TAG, "Failed to overlay textBubbleBitmap onto a bitmap with number " + clusterSizeStr, e);
@@ -300,13 +300,13 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         }
     }
 
-    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2, int left, int top) {
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {
         float dp = Resources.getSystem().getDisplayMetrics().density;
 
         Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth() + bmp2.getWidth(), bmp1.getHeight()+bmp2.getHeight(), bmp1.getConfig());
         Canvas canvas = new Canvas(bmOverlay);
-        canvas.drawBitmap(bmp1, 0, top*dp, null);
-        canvas.drawBitmap(bmp2, left*dp, 0, null);
+        canvas.drawBitmap(bmp1, bmp1.getWidth() - bmp2.getWidth()/2, bmp2.getHeight(), null);
+        canvas.drawBitmap(bmp2, bmp1.getWidth(), bmp2.getHeight() - bmp2.getHeight()/2, null);
         return bmOverlay;
     }
 
