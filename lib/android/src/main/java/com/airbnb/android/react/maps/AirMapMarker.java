@@ -370,6 +370,9 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
         Runnable myRunnable = new Runnable() {
             @Override
             public void run() {
+                // runnables are handled by a looper, similar to JS, so this isn't guaranteed to exist at the time of the call.
+                if (marker == null) { return; }
+
                 marker.setIcon(getIcon());
 
                 if (anchorIsSet) {
