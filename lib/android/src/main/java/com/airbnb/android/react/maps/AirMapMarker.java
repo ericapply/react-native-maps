@@ -373,22 +373,26 @@ public class AirMapMarker extends AirMapFeature implements ClusterItem {
                 // runnables are handled by a looper, similar to JS, so this isn't guaranteed to exist at the time of the call.
                 if (marker == null) { return; }
 
-                marker.setIcon(getIcon());
+                try {
+                    marker.setIcon(getIcon());
 
-                if (anchorIsSet) {
-                    marker.setAnchor(anchorX, anchorY);
-                } else {
-                    marker.setAnchor(0.5f, 1.0f);
-                }
+                    if (anchorIsSet) {
+                        marker.setAnchor(anchorX, anchorY);
+                    } else {
+                        marker.setAnchor(0.5f, 1.0f);
+                    }
 
-                if (calloutAnchorIsSet) {
-                    marker.setInfoWindowAnchor(calloutAnchorX, calloutAnchorY);
-                } else {
-                    marker.setInfoWindowAnchor(0.5f, 0);
-                }
+                    if (calloutAnchorIsSet) {
+                        marker.setInfoWindowAnchor(calloutAnchorX, calloutAnchorY);
+                    } else {
+                        marker.setInfoWindowAnchor(0.5f, 0);
+                    }
 
-                if(cluster && mClusterManager != null) {
-                    mClusterManager.cluster();
+                    if (cluster && mClusterManager != null) {
+                        mClusterManager.cluster();
+                    }
+                } catch (IllegalArgumentException e) {
+                    Log.e(this.getClass().getName(), e.getMessage());
                 }
             }
         };
