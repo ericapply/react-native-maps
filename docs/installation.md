@@ -21,7 +21,7 @@ react-native link react-native-maps
 
 ### Option 1: CocoaPods - Same as the included AirMapsExplorer example
 
-1. Setup your `Podfile` like the included [example/ios/Podfile](../example/ios/Podfile), replace all references to `AirMapExplorer` with your project name, and then run `pod install`.
+1. Setup your `Podfile` like the included [example/ios/Podfile](../example/ios/Podfile), replace all references to `AirMapsExplorer` with your project name, and then run `pod install`.
    (If you do not need `GoogleMaps` support for iOS, then you can probably completely skip this step.)
 1. Open your project in Xcode workspace
 1. If you need `GoogleMaps` support also
@@ -123,6 +123,8 @@ Source: https://developers.google.com/maps/documentation/android-api/signup
 
 ## Troubleshooting
 
+If you get the error `duplicate symbols for architecture x86_64` when building for iOS, you may need to reconfigure your linking and Podfile as [described in detail in this comment on issue #718](https://github.com/airbnb/react-native-maps/issues/718#issuecomment-295585410)
+
 If you have a blank map issue, ([#118](https://github.com/airbnb/react-native-maps/issues/118), [#176](https://github.com/airbnb/react-native-maps/issues/176), [#684](https://github.com/airbnb/react-native-maps/issues/684)), try the following lines :
 
 ### On iOS:
@@ -203,7 +205,7 @@ Enter the name of the API key and create it.
 1. Clean the cache :
   ```
    watchman watch-del-all
-   npm clean cache
+   npm cache clean
   ```
 
 1. When starting emulator, make sure you have enabled `Wipe user data`.

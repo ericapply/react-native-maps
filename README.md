@@ -207,7 +207,7 @@ Then add the AirGoogleMaps directory:
 
 https://github.com/airbnb/react-native-maps/blob/1e71a21f39e7b88554852951f773c731c94680c9/docs/installation.md#ios
 
-An unoffical step-by-step guide is also available at https://gist.github.com/heron2014/e60fa003e9b117ce80d56bb1d5bfe9e0
+An unofficial step-by-step guide is also available at https://gist.github.com/heron2014/e60fa003e9b117ce80d56bb1d5bfe9e0
 
 ## Examples
 
@@ -405,7 +405,7 @@ getInitialState() {
 takeSnapshot () {
   // 'takeSnapshot' takes a config object with the
   // following options
-  const snapshot = this.refs.map.takeSnapshot({
+  const snapshot = this.map.takeSnapshot({
     width: 300,      // optional, when omitted the view-width is used
     height: 300,     // optional, when omitted the view-height is used
     region: {..},    // iOS only, optional region to render
@@ -421,7 +421,7 @@ takeSnapshot () {
 render() {
   return (
     <View>
-      <MapView initialRegion={...} ref="map">
+      <MapView initialRegion={...} ref={map => { this.map = map }}>
         <MapView.Marker coordinate={this.state.coordinate} />
       </MapView>
       <Image source={{ uri: this.state.mapSnapshot.uri }} />
