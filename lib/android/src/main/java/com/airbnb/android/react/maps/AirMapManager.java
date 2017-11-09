@@ -314,10 +314,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
         "animateToBearing", ANIMATE_TO_BEARING,
         "fitToElements", FIT_TO_ELEMENTS,
         "fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS,
-        "fitToCoordinates", FIT_TO_COORDINATES,
-        "refresh", REFRESH,
-        "animateToLatLng", ANIMATE_TO_LATLNG,
-        "animateToLatLngZoom", ANIMATE_TO_LATLNG_ZOOM
+        "fitToCoordinates", FIT_TO_COORDINATES
     );
   }
 
